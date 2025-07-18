@@ -1,9 +1,11 @@
 const dbConnection = require('../config/db.config');
 // import fs module
 const fs = require('fs');
+// import path module to handle file paths
+const path = require('path');
 
 async function install() {
-    const queryFile = __dirname + '/sql/initial-queries.sql';
+    const queryFile = path.join(__dirname, '..', 'sql', 'initial-queries.sql');
     // console.log(queryFile);
     
     let queries = [];
