@@ -1,4 +1,4 @@
--- Customers tables  
+-- Customers table
 CREATE TABLE IF NOT EXISTS `customer_identifier` (
   `customer_id` int(11) NOT NULL AUTO_INCREMENT,
   `customer_email` varchar(255) NOT NULL,
