@@ -1,0 +1,3 @@
+*.js linguist-language=JavaScript
+*.sql linguist-language=SQL
+*.json linguist-language=JSON
