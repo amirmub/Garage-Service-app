@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 
-function Header(props) {
+function Header() {
   return (
     <div>
       <nav className="navbar navbar-expand-lg bg-white navbar-light shadow sticky-top p-0">

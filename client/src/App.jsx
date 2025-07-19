@@ -6,7 +6,6 @@ import AddEmployee from './pages/Admin/Addemployee/Addemployee'
 import Header from './components/Header/Header'
 import Footer from './components/Footer/Footer'
 
-
 function App() {
 
   return (

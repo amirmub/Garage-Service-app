@@ -1,0 +1,41 @@
+.sidebar {
+  background-color: #091436;
+  min-height: 100vh;
+  color: white;
+}
+.sidebar .nav-link {
+  color: #ccc;
+  border-bottom: 1.3px solid #2c3142;
+  padding: 15px 20px;
+}
+.sidebar .nav-link:hover {
+  background-color: #172346;
+  color: white;
+}
+.sidebar .nav-link.active {
+  background-color: #2d3245;
+  color: white;
+}
+.form-control::placeholder {
+  color: #ccc;
+  font-style: italic;
+}
+.section-title {
+  font-weight: bold;
+  font-size: 24px;
+  color: #0d1b52;
+  position: relative;
+  margin-bottom: 30px;
+}
+.section-title::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 2px;
+  width: 40px;
+  background-color: red;
+}
+.btn-danger {
+  font-weight: bold;
+}
