@@ -45,11 +45,12 @@ async function install() {
     // prepare the final message to controller
     if (!finalMessage.msg) {
          finalMessage.msg = "All tables created successfully";
-        return finalMessage.status = 200;
+         finalMessage.status = 200;
     } else {
-        return finalMessage.status = 500;
+         finalMessage.status = 500;
     }
 
+    return finalMessage
 }
 
 module.exports = { install };

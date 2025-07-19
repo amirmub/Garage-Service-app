@@ -9,6 +9,15 @@ const dbConnection = mysql.createPool({
     connectionLimit: 10, // Optional: Set a connection limit
 });
 
+// dbConnection.getConnection((err)=>{
+//     if (err) {
+//         console.log(err);
+//     }
+//     else{
+//         console.log("DB Connected");
+//     }
+// })
+
 async function query(sql,params) {
     const [row,fields] = await dbConnection.execute(sql,params)
     return row
