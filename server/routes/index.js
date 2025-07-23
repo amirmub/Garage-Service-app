@@ -9,6 +9,8 @@ router.use(installRoutes);
 const addEmployeeRoutes = require('./addEmployee.routes');
 router.use(addEmployeeRoutes);
 
-
+// login route
+const loginRoutes = require("./login.route");
+router.use(loginRoutes)
 
 module.exports = router;
