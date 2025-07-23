@@ -22,6 +22,8 @@ async function addEmployee(employeeData) {
     return { error: "Missing required fields", status: 400 };
   }
 
+  const company_role_id = 1;
+
   if (employee_password.length < 8) {
     return { error: "Password must be at least 8 characters", status: 400 };
   }
@@ -57,10 +59,10 @@ async function addEmployee(employeeData) {
       [employee_id, hashedPassword]
     );
 
-    // await db.query(
-    //   "INSERT INTO employee_role (employee_id) VALUES (?)",
-    //   [employee_id]
-    // );
+    await db.query(
+      "INSERT INTO employee_role (employee_id,company_role_id) VALUES (?,?)",
+      [employee_id,company_role_id]
+    );
 
     return { message: "Employee added successfully", status: 201 };
     
