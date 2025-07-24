@@ -80,7 +80,7 @@ function AddEmployee() {
               </select>
             </div>
             <small
-            style={{ color: "red", fontSize: "14px", paddingBottom: "3px",margin : "10px 250px" }}
+            style={{ color: "red", fontSize: "14px", paddingBottom: "3px",margin : "10px 0px 10px 200px" }}
           >
             {error}
           </small><br />

@@ -23,6 +23,7 @@ function Login() {
 
       console.log(result.data);
       navigate("/");
+      localStorage.setItem("Token",result.data.token)
     } catch (error) {
       console.log(error.response?.data);
       setError(error.response?.data.msg)
