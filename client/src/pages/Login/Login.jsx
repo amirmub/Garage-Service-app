@@ -1,14 +1,41 @@
+import { useRef } from "react";
+import axios from "../../utils/axios";
+import { useNavigate } from "react-router-dom";
 
 function Login() {
+  const navigate = useNavigate()
+  const emailDom = useRef();
+  const passwordDom = useRef();
+
+  async function handleSubmit(e) {
+    e.preventDefault();
+    const emailValue = emailDom.current.value;
+    const passwordValue = passwordDom.current.value;
+
+    try {
+      const result = await axios.post("/login", {
+        employee_email: emailValue,
+        employee_password: passwordValue,
+      });
+
+      console.log( result.data);
+      navigate("/")
+
+    } catch (error) {
+      console.log( error.response?.data);
+
+    }
+  }
   return (
       <div style={{maxWidth: 650}} className="container py-5">
         <div className="wow fadeInUp" data-wow-delay="0.2s">
           <h2 className="mb-5 mt-3">Login To Your Account</h2>
-          <form>
+          <form onSubmit={handleSubmit}>
             <div className="row g-3">
               <div className="col-12">
                 <div className="form-floating">
                   <input
+                    ref={emailDom}
                     type="text"
                     className="form-control "
                     id="email"
@@ -20,7 +47,8 @@ function Login() {
               <div className="col-12">
                 <div className="form-floating">
                   <input
-                    type="text"
+                    ref={passwordDom}
+                    type="password"
                     className="form-control"
                     id="password"
                     placeholder="Password"
