@@ -2,9 +2,11 @@ import { useRef } from "react";
 import Sidebar from "../../../components/Sidebar/Sidebar";
 import axios from "../../../utils/axios";
 import { useNavigate } from "react-router-dom";
+import { useState } from "react";
 
 function AddEmployee() {
-  const navigate = useNavigate()
+  const navigate = useNavigate();
+  const [error,setError] = useState('');
 
   const fNameDom = useRef();
   const lNameDom = useRef();
@@ -35,12 +37,12 @@ function AddEmployee() {
         company_role_id: roleValue,
       });
 
-      console.log( result.data);
+      console.log(result.data.msg);
       navigate("/")
 
     } catch (error) {
-      console.log( error.response?.data);
-
+      console.log( error.response?.data.msg);
+      setError(error.response?.data.msg)
     }
   }
 
@@ -55,7 +57,7 @@ function AddEmployee() {
           <div className="section-title">Add a New Employee</div>
           <form onSubmit={handleSubmit} className="w-75">
             <div className="mb-3">
-              <input ref={fNameDom} type="text" className="form-control" placeholder="First name" />
+              <input ref={fNameDom} type="text" className="form-control " placeholder="First name" />
             </div>
             <div className="mb-3">
               <input ref={lNameDom} type="text" className="form-control" placeholder="Last name" />
@@ -69,7 +71,7 @@ function AddEmployee() {
             <div className="mb-3">
               <input ref={phoneDom} type="tel" className="form-control" placeholder="+251-9999999" />
             </div>
-            <div className="mb-4">
+            <div className="mb-1">
               <select ref={roleDom} className="form-control">
                 <option value="">Select role</option>
                 <option value="1">Employee</option>
@@ -77,6 +79,11 @@ function AddEmployee() {
                 <option value="2">Admin</option>
               </select>
             </div>
+            <small
+            style={{ color: "red", fontSize: "14px", paddingBottom: "3px",margin : "10px 250px" }}
+          >
+            {error}
+          </small><br />
             <button type="submit" className="btn btn-danger px-4 py-2">ADD Employee</button>
           </form>
         </div>

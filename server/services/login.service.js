@@ -6,7 +6,7 @@ async function login(loginData) {
   const { employee_email, employee_password } = loginData;
 
   if (!employee_email || !employee_password) {
-    return { error: "Missing required fields", status: 400 };
+    return { error: "Please fill all required fields.", status: 400 };
   }
 
   try {

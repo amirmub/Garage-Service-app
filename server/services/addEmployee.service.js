@@ -19,7 +19,7 @@ async function addEmployee(employeeData) {
     !employee_password ||
     !company_role_id
   ) {
-    return { error: "Missing required fields", status: 400 };
+    return { error: "Please fill all required fields.", status: 400 };
   }
 
   const active_employee = 1;
