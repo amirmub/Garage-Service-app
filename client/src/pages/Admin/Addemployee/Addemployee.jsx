@@ -76,7 +76,7 @@ function AddEmployee() {
                 <option value="">Select role</option>
                 <option value="1">Employee</option>
                 <option value="2">Manager</option>
-                <option value="2">Admin</option>
+                <option value="3">Admin</option>
               </select>
             </div>
             <small
