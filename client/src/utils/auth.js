@@ -16,7 +16,7 @@ function decodeTokenPayload(token) {
 
 
 // Get decoded auth data from localStorage
-export function getAuth() {
+export const getAuth = () => {
   const token = localStorage.getItem("Token");
   if (!token) {
     return null;
