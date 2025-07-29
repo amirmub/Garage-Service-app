@@ -133,9 +133,9 @@ CREATE TABLE IF NOT EXISTS `order_status` (
   FOREIGN KEY (order_id) REFERENCES orders(order_id)
 ) ENGINE=InnoDB;
 
--- -- Add the roles to the database         below this to check if the tables are created correctly
--- INSERT INTO company_roles (company_role_name)
--- VALUES ('Employee'), ('Manager'), ('Admin');
+-- Add the roles to the database         below this to check if the tables are created correctly
+INSERT INTO company_roles (company_role_name)
+VALUES ('Employee'), ('Manager'), ('Admin');
 
 -- -- Create admin employee account
 -- INSERT INTO employee (employee_email, active_employee, added_date)

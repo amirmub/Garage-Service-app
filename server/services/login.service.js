@@ -16,17 +16,17 @@ async function login(loginData) {
         employee.employee_email, 
         employee_pass.employee_password_hashed,
         employee_info.employee_first_name,
-        company_roles.company_role_name
+        employee_role.company_role_id AS employee_role
+
       FROM employee
       INNER JOIN employee_pass ON employee.employee_id = employee_pass.employee_id
       INNER JOIN employee_info ON employee.employee_id = employee_info.employee_id
       INNER JOIN employee_role ON employee.employee_id = employee_role.employee_id
-      INNER JOIN company_roles ON employee_role.company_role_id = company_roles.company_role_id
       WHERE employee.employee_email = ?`,
       [employee_email],
     );
 
-    console.log(existedUser);
+    // console.log(existedUser);
     
     if (!existedUser || existedUser.length === 0) {
       return { error: "Account doesn't exist", status: 400 };
@@ -44,7 +44,7 @@ async function login(loginData) {
     const payload = {
       employee_email: existedUser[0].employee_email,
       employee_id: existedUser[0].employee_id,
-      company_role_id: existedUser[0].company_role_id,   // remember update this line on the SQL syntax
+      employee_role: existedUser[0].employee_role, 
       employee_first_name: existedUser[0].employee_first_name
     };
 
