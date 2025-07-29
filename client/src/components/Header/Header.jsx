@@ -23,9 +23,9 @@ function Header() {
             <Link to="/about" className="nav-item nav-link">About</Link>
             <Link to="/services" className="nav-item nav-link">Services</Link>
             <Link to="/contact" className="nav-item nav-link">Contact</Link>
-            <div className="nav-item dropdown">
+            {/* <div className="nav-item dropdown">
               <Link to="/admin" className="nav-link">Admin</Link>
-            </div>
+            </div> */}
           </div>
           <Link
             to="/logout"
