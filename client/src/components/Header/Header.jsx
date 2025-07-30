@@ -1,9 +1,13 @@
-import { Link } from 'react-router-dom';
+import { Link } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
 
-
 function Header() {
-  const {isLogin} = useAuth();
+  const { isLogin } = useAuth();
+
+  function logOut() {
+    localStorage.removeItem("Token");
+    window.location.reload();
+  }
 
   return (
     <div>
@@ -23,45 +27,57 @@ function Header() {
         </button>
         <div className="collapse navbar-collapse" id="navbarCollapse">
           <div className="navbar-nav ms-auto p-4 p-lg-0">
-            <Link to="/" className="nav-item nav-link active">Home</Link>
-            <Link to="/about" className="nav-item nav-link">About</Link>
-            <Link to="/services" className="nav-item nav-link">Services</Link>
-            <Link to="/contact" className="nav-item nav-link">Contact</Link>
+            <Link to="/" className="nav-item nav-link active">
+              Home
+            </Link>
+            <Link to="/about" className="nav-item nav-link">
+              About
+            </Link>
+            <Link to="/services" className="nav-item nav-link">
+              Services
+            </Link>
+            <Link to="/contact" className="nav-item nav-link">
+              Contact
+            </Link>
             {/* <div className="nav-item dropdown">
               <Link to="/admin" className="nav-link">Admin</Link>
             </div> */}
           </div>
-         {
-          isLogin ?
-           <Link
-            to="/login"
-            className="btn btn-primary d-none d-lg-block"
-            style={{
-              width: "90px",
-              height: "45px",
-              marginRight: "30px",
-              paddingTop: "12px",
-              fontSize: "14px",
-              borderRadius: "3px",
-            }}
-          >
-            logout
-          </Link>
-          : <Link
-            to="/logout"
-            className="btn btn-primary d-none d-lg-block"
-            style={{
-              width: "90px",
-              height: "45px",
-              marginRight: "30px",
-              paddingTop: "12px",
-              fontSize: "14px",
-              borderRadius: "3px",
-            }}
-          >
-            logIn
-          </Link>
-         }
+          {isLogin ? (
+            <div onClick={logOut}>
+              <Link
+                to="/"
+                className="btn btn-primary d-none d-lg-block"
+                style={{
+                  width: "90px",
+                  height: "45px",
+                  marginRight: "30px",
+                  paddingTop: "12px",
+                  fontSize: "14px",
+                  borderRadius: "3px",
+                }}
+              >
+                logout
+              </Link>
+            </div>
+          ) : (
+            <div>
+              <Link
+                to="/login"
+                className="btn btn-primary d-none d-lg-block"
+                style={{
+                  width: "90px",
+                  height: "45px",
+                  marginRight: "30px",
+                  paddingTop: "12px",
+                  fontSize: "14px",
+                  borderRadius: "3px",
+                }}
+              >
+                logIn
+              </Link>
+            </div>
+          )}
         </div>
       </nav>
     </div>
