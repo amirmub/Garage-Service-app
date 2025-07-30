@@ -1,6 +1,10 @@
 import { Link } from 'react-router-dom';
+import { useAuth } from "../../contexts/AuthContext";
+
 
 function Header() {
+  const {isLogin} = useAuth();
+
   return (
     <div>
       <nav className="navbar navbar-expand-lg bg-white navbar-light shadow sticky-top p-0">
@@ -27,7 +31,23 @@ function Header() {
               <Link to="/admin" className="nav-link">Admin</Link>
             </div> */}
           </div>
-          <Link
+         {
+          isLogin ?
+           <Link
+            to="/login"
+            className="btn btn-primary d-none d-lg-block"
+            style={{
+              width: "90px",
+              height: "45px",
+              marginRight: "30px",
+              paddingTop: "12px",
+              fontSize: "14px",
+              borderRadius: "3px",
+            }}
+          >
+            logout
+          </Link>
+          : <Link
             to="/logout"
             className="btn btn-primary d-none d-lg-block"
             style={{
@@ -39,8 +59,9 @@ function Header() {
               borderRadius: "3px",
             }}
           >
-            Log out
+            logIn
           </Link>
+         }
         </div>
       </nav>
     </div>

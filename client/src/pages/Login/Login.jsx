@@ -22,8 +22,9 @@ function Login() {
       });
 
       console.log(result.data);
-      navigate("/");
       localStorage.setItem("Token",result.data.token)
+      navigate("/");
+      window.location.reload();
     } catch (error) {
       console.log(error.response?.data);
       setError(error.response?.data.msg)
