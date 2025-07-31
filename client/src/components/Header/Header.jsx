@@ -46,7 +46,7 @@ function Header() {
           {isLogin ? (
             <div onClick={logOut}>
               <Link
-                to="/"
+                to="/login"
                 className="btn btn-primary d-none d-lg-block"
                 style={{
                   width: "90px",
