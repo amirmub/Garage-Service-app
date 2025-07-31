@@ -26,7 +26,7 @@ function TopHeader() {
           ) : (
             <div className="h-100 d-inline-flex align-items-center py-3 me-4">
               <small className="fa fa-phone-alt text-primary me-2"></small>
-              <small>+251-985-102027</small>
+              <small>+251- 985102027</small>
             </div>
           )}
         </div>

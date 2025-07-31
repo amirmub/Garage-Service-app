@@ -22,9 +22,9 @@ function App() {
        <Route path='/add-employee' element = {<AddEmployee />}></Route>
        <Route path='/unAuthorized' element = {<UnAuthorized />}></Route>
 
-       {/* only authenticated pages */}
+       {/* any authenticated user access*/}
        <Route path='/admin/order' 
-         element = {<PrivateRoute role={[1,3]}>
+         element = {<PrivateRoute role={[1,2,3]}>
           <Order />
        </PrivateRoute>}>
 
