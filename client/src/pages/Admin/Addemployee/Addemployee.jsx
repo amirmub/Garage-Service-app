@@ -3,10 +3,11 @@ import Sidebar from "../../../components/Sidebar/Sidebar";
 import axios from "../../../utils/axios";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
+import { getAuth } from "../../../utils/auth";
 
 function AddEmployee() {
   const navigate = useNavigate();
-  const [error,setError] = useState('');
+  const [error, setError] = useState("");
 
   const fNameDom = useRef();
   const lNameDom = useRef();
@@ -14,6 +15,11 @@ function AddEmployee() {
   const emailDom = useRef();
   const phoneDom = useRef();
   const roleDom = useRef();
+
+  // to pass the token to backend
+  const auth = getAuth();
+  const loginEmployee = auth?.token || "no token";
+  console.log(loginEmployee);
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -27,22 +33,30 @@ function AddEmployee() {
     const roleValue = roleDom.current.value;
 
     try {
-      const result = await axios.post("/add-employee", {
-        employee_first_name: fNameValue,
-        employee_last_name: lNameValue,
-        employee_email: emailValue,
-        employee_password: passwordValue,
-        employee_phone: phoneValue,
-        active_employee: activeValue,
-        company_role_id: roleValue,
-      });
+      const result = await axios.post(
+        "/add-employee",
+        {
+          employee_first_name: fNameValue,
+          employee_last_name: lNameValue,
+          employee_email: emailValue,
+          employee_password: passwordValue,
+          employee_phone: phoneValue,
+          active_employee: activeValue,
+          company_role_id: roleValue,
+        },
+        // to pass using header to backend
+        {
+          headers: {
+            token: loginEmployee,
+          },
+        }
+      );
 
-      console.log(result.data.msg);
-      navigate("/")
-
+      console.log(result.data);
+      navigate("/");
     } catch (error) {
-      console.log( error.response?.data.msg);
-      setError(error.response?.data.msg)
+      console.log(error.response?.data.msg);
+      setError(error.response?.data.msg);
     }
   }
 
@@ -57,19 +71,44 @@ function AddEmployee() {
           <div className="section-title">Add a New Employee</div>
           <form onSubmit={handleSubmit} className="w-75">
             <div className="mb-3">
-              <input ref={fNameDom} type="text" className="form-control " placeholder="First name" />
+              <input
+                ref={fNameDom}
+                type="text"
+                className="form-control "
+                placeholder="First name"
+              />
             </div>
             <div className="mb-3">
-              <input ref={lNameDom} type="text" className="form-control" placeholder="Last name" />
+              <input
+                ref={lNameDom}
+                type="text"
+                className="form-control"
+                placeholder="Last name"
+              />
             </div>
             <div className="mb-3">
-              <input ref={emailDom} type="email" className="form-control" placeholder="Email" />
+              <input
+                ref={emailDom}
+                type="email"
+                className="form-control"
+                placeholder="Email"
+              />
             </div>
             <div className="mb-3">
-              <input ref={passwordDom} type="password" className="form-control" placeholder="Password" />
+              <input
+                ref={passwordDom}
+                type="password"
+                className="form-control"
+                placeholder="Password"
+              />
             </div>
             <div className="mb-3">
-              <input ref={phoneDom} type="tel" className="form-control" placeholder="+251-9999999" />
+              <input
+                ref={phoneDom}
+                type="tel"
+                className="form-control"
+                placeholder="+251-9999999"
+              />
             </div>
             <div className="mb-1">
               <select ref={roleDom} className="form-control">
@@ -80,11 +119,19 @@ function AddEmployee() {
               </select>
             </div>
             <small
-            style={{ color: "red", fontSize: "14px", paddingBottom: "3px",margin : "10px 0px 10px 200px" }}
-          >
-            {error}
-          </small><br />
-            <button type="submit" className="btn btn-danger px-4 py-2">ADD Employee</button>
+              style={{
+                color: "red",
+                fontSize: "14px",
+                paddingBottom: "3px",
+                margin: "10px 0px 10px 200px",
+              }}
+            >
+              {error}
+            </small>
+            <br />
+            <button type="submit" className="btn btn-danger px-4 py-2">
+              ADD Employee
+            </button>
           </form>
         </div>
       </div>
