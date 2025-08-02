@@ -10,10 +10,10 @@ function tokenVerify(req, res, next) {
   jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
     if (err) {
       console.log(err.message);
-      return res.status(400).json({ msg: "token not verified" });
+      return res.status(401).json({ msg: "token not verified" });
     }
     const result = req.employee_role = decoded.employee_role;
-    console.log(result); // to check the role is sent or not // and also pass the below function
+    // console.log(result); // to check the role is sent or not // and also pass the below function
     
     next();
   });
@@ -21,7 +21,8 @@ function tokenVerify(req, res, next) {
 }
 
 
-// next only access by admin this function to check the user is admin or not
+
+// next to check the user is admin or not. only access by admin this function 
 function isAdmin(req,res,next) {
     // from the above function this role
     const employee_role = req.employee_role;
@@ -29,7 +30,7 @@ function isAdmin(req,res,next) {
         next();
     }
     else{
-         return res.status(400).json({ msg: "You are not admin"});
+         return res.status(403).json({ msg: "You are not admin"});
     }
 
 }

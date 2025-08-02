@@ -3,7 +3,7 @@ const addEmployeeService = require("../services/addEmployee.service");
 async function addEmployee(req,res,next) {
     const result = await addEmployeeService.addEmployee(req.body);
     const token = req.headers.token;
-     console.log("Received token:", token);
+    //  console.log("Received token:", token);
     
 
     if (result.error) {
