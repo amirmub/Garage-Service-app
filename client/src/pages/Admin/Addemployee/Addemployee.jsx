@@ -53,7 +53,7 @@ function AddEmployee() {
       );
 
       console.log(result.data);
-      navigate("/");
+      navigate("/admin/employee");
     } catch (error) {
       console.log(error.response?.data.msg);
       setError(error.response?.data.msg);
