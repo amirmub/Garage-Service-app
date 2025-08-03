@@ -13,4 +13,8 @@ router.use(addEmployeeRoutes);
 const loginRoutes = require("./login.route");
 router.use(loginRoutes)
 
+// get all employee route
+const getAllEmployee = require("./getAllEmployee.route");
+router.use(getAllEmployee)
+
 module.exports = router;
