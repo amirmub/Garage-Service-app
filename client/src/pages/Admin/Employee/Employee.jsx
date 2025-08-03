@@ -4,10 +4,12 @@ import { useAuth } from "../../../contexts/AuthContext";
 import axios from "../../../utils/axios";
 import { getAuth } from "../../../utils/auth";
 import { format } from "date-fns";
+import {RingLoader} from "react-spinners"
 
 function Employee() {
   const [employees, setEmployees] = useState([]);
   const { employee } = useAuth(); // Logged-in employee with token
+  const [loading,setLoading] = useState(true);
 
   // to pass the token to backend
   const auth = getAuth();
@@ -26,14 +28,19 @@ function Employee() {
 
         if (response.data && response.data.msg) {
           setEmployees(response.data.msg);
+          setLoading(false)
         }
       } catch (error) {
         console.log("Error fetching employees:", error);
+      }
+      finally {
+        setLoading(false);
       }
     }
 
     fetchData();
   }, [employee]);
+
 
   return (
     <div className="container-fluid">
@@ -42,8 +49,12 @@ function Employee() {
           <Sidebar />
         </div>
         <div  className="col-md-9 col-lg-10 px-5">
-          <h3 class="title-bar pt-5 pb-2">Employees</h3>
+          <h3 className="title-bar pt-4 pb-2">Employees</h3>
 
+        {
+          loading ?  <div className="d-flex justify-content-center align-items-center" style={{ height: "300px" }}>
+            <RingLoader size={50} color="#B8101F" />
+          </div> :
           <div
             className="table-responsive"
             style={{ maxHeight: "400px", overflowY: "auto" }}
@@ -100,6 +111,7 @@ function Employee() {
               </tbody>
             </table>
           </div>
+        }
         </div>
       </div>
     </div>
