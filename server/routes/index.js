@@ -17,4 +17,8 @@ router.use(loginRoutes)
 const getAllEmployee = require("./getAllEmployee.route");
 router.use(getAllEmployee)
 
+// delete employee route
+const deleteEmployee = require("./deleteEmployee.route");
+router.use(deleteEmployee)
+
 module.exports = router;
