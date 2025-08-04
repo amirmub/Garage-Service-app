@@ -67,7 +67,7 @@ function Employee() {
           <Sidebar />
         </div>
         <div className="col-md-9 col-lg-10 px-5">
-          <h3 className="title-bar pt-4 pb-2">Employees</h3>
+          <h3 className="title-bar section-title pt-4 pb-1">Employees</h3>
 
           {loading ? (
             <div
@@ -95,7 +95,7 @@ function Employee() {
                     <th>Phone</th>
                     <th>Added Date</th>
                     <th>Role</th>
-                    <th>Edit</th>
+                    <th>Action</th>
                   </tr>
                 </thead>
                 <tbody>
