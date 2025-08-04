@@ -21,4 +21,8 @@ router.use(getAllEmployee)
 const deleteEmployee = require("./deleteEmployee.route");
 router.use(deleteEmployee)
 
+// update employee route
+const editEmployee = require("./editEmployee.route");
+router.use(editEmployee)
+
 module.exports = router;

@@ -48,7 +48,7 @@ async function login(loginData) {
       employee_first_name: existedUser[0].employee_first_name
     };
 
-    const token = jwt.sign(payload, secretKey, { expiresIn: "1d" });
+    const token = jwt.sign(payload, secretKey, { expiresIn: "1y" });
 
     return {
       message: "Login successful",
