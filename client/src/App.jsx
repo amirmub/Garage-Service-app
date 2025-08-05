@@ -10,6 +10,7 @@ import UnAuthorized from "./pages/UnAuthorized/UnAuthorized";
 import { PrivateRoute } from "./components/Auth/PrivetRoute";
 import Order from "./pages/Order/Order";
 import Employee from "./pages/Admin/Employee/Employee";
+import AddCustomer from "./pages/Customer/AddCustomer/AddCustomer";
 
 function App() {
   return (
@@ -39,6 +40,16 @@ function App() {
           element={
             <PrivateRoute role={[3]}>
               <AddEmployee />
+            </PrivateRoute>
+          }
+        ></Route>
+
+        {/* authorized for role 2 and 3 */}
+        <Route
+          path="/add-customer"
+          element={
+            <PrivateRoute role={[2,3]}>
+              <AddCustomer />
             </PrivateRoute>
           }
         ></Route>
