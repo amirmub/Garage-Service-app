@@ -20,6 +20,7 @@ function Employee() {
   const auth = getAuth();
   const loginEmployee = auth?.token || "no token";
 
+  // this function for displaying employees from database
   useEffect(() => {
     async function fetchData() {
       try {
@@ -38,21 +39,28 @@ function Employee() {
     fetchData();
   }, [employee]);
 
-  const handleDelete = async (id) => {
+
+// this function for deleting employees
+  async function handleDelete  (id){
     if (!window.confirm("Are you sure you want to delete this employee?"))
       return;
     try {
       await axios.delete(`/admin/delete/${id}`, {
         headers: { token: loginEmployee },
       });
+
       setEmployees((prev) => prev.filter((emp) => emp.employee_id !== id));
+
       toast.success("Employee deleted successfully!");
+
     } catch (error) {
       console.log("Delete error:", error);
       toast.error("Failed to delete employee!");
     }
   };
 
+  
+  // all below functions are for editing employees
   const handleEditClick = (emp) => {
     setEditRow(emp.employee_id);
     setEditData({
