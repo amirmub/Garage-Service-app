@@ -11,6 +11,7 @@ import { PrivateRoute } from "./components/Auth/PrivetRoute";
 import Order from "./pages/Order/Order";
 import Employee from "./pages/Admin/Employee/Employee";
 import AddCustomer from "./pages/Customer/AddCustomer/AddCustomer";
+import Customers from "./pages/Customer/Customers/Customers";
 
 function App() {
   return (
@@ -50,6 +51,15 @@ function App() {
           element={
             <PrivateRoute role={[2,3]}>
               <AddCustomer />
+            </PrivateRoute>
+          }
+        ></Route>
+
+        <Route
+          path="/customers"
+          element={
+            <PrivateRoute role={[2,3]}>
+              <Customers />
             </PrivateRoute>
           }
         ></Route>
