@@ -29,4 +29,8 @@ router.use(editEmployee)
 const addCustomer = require("./addCustomer.route");
 router.use(addCustomer)
 
+// add customer route
+const getAllCustomer = require("./getAllCustomer.route");
+router.use(getAllCustomer)
+
 module.exports = router;
