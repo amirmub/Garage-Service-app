@@ -21,9 +21,7 @@ function App() {
       <Routes>
         <Route path="/" element={<Home />}></Route>
         <Route path="/login" element={<Login />}></Route>
-        {/* <Route path='/add-employee' element = {<AddEmployee />}></Route> */}
         <Route path="/unAuthorized" element={<UnAuthorized />}></Route>
-        <Route path="/admin/employee" element={<Employee />}></Route>
 
         {/* any authenticated user access*/}
         <Route
@@ -44,6 +42,16 @@ function App() {
             </PrivateRoute>
           }
         ></Route>
+        
+         <Route
+          path="/admin/employee"
+          element={
+            <PrivateRoute role={[3]}>
+              <Employee />
+            </PrivateRoute>
+          }
+        ></Route>
+
 
         {/* authorized for role 2 and 3 */}
         <Route

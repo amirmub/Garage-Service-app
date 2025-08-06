@@ -20,7 +20,7 @@ function Employee() {
   const auth = getAuth();
   const loginEmployee = auth?.token || "no token";
 
-  // this function for displaying employees from database
+  // this function for Read/displaying employees from database
   useEffect(() => {
     async function fetchData() {
       try {
@@ -257,14 +257,14 @@ function Employee() {
                               onClick={() => handleSaveEdit(emp.employee_id)}
                               style={{ fontSize: "14px" }}
                             >
-                              Save
+                              <small>Save</small>
                             </button>
                             <button
                               className="btn btn-secondary btn-sm"
                               onClick={handleCancelEdit}
                               style={{ fontSize: "14px" }}
                             >
-                              Cancel
+                              <small>Cancel</small>
                             </button>
                           </>
                         ) : (

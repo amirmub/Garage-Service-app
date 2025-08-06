@@ -1,6 +1,5 @@
 import Sidebar from "../../../components/Sidebar/Sidebar";
 import { useState, useEffect } from "react";
-import { useAuth } from "../../../contexts/AuthContext";
 import axios from "../../../utils/axios";
 import { getAuth } from "../../../utils/auth";
 import { format } from "date-fns";
@@ -12,6 +11,10 @@ import "react-toastify/dist/ReactToastify.css";
 function Customers() {
   const [customers, setCustomers] = useState([]);
   const [loading, setLoading] = useState(true);
+
+    // below to for editing
+  const [editRow, setEditRow] = useState(null);
+  const [editData, setEditData] = useState({});
 
   const auth = getAuth();
   const loginEmployee = auth?.token || "no token";
@@ -34,6 +37,90 @@ function Customers() {
     }
     fetchData();
   }, [customers]);
+
+
+  // this function for deleting employees
+  async function handleDelete  (id){
+    if (!window.confirm("Are you sure you want to delete this customer?"))
+      return;
+    try {
+      await axios.delete(`/customer/delete/${id}`, {
+        headers: { token: loginEmployee },
+      });
+
+      setCustomers((prev) => prev.filter((cus) => cus.customer_id !== id));
+
+      toast.success("Customer deleted successfully!");
+
+    } catch (error) {
+      console.log("Delete error:", error);
+      toast.error("Failed to delete customer!");
+    }
+  };
+
+
+   // all below functions are for editing customers
+  const handleEditClick = (cus) => {
+    setEditRow(cus.customer_id);
+    setEditData({
+      customer: {
+        customer_first_name: cus.customer_first_name,
+        customer_last_name: cus.customer_last_name,
+        customer_email: cus.customer_email,
+        customer_phone: cus.customer_phone,
+      },
+    });
+  };
+
+  const handleInputChange = (section, field, value) => {
+    setEditData((prev) => ({
+      ...prev,
+      [section]: {
+        ...prev[section],
+        [field]: value,
+      },
+    }));
+  };
+
+  const handleCancelEdit = () => {
+    setEditRow(null);
+    setEditData({});
+  };
+
+  const handleSaveEdit = async (id) => {
+    try {
+      const payload = {
+        customer_info: {
+          customer_first_name: editData.customer?.customer_first_name,
+          customer_last_name: editData.customer?.customer_last_name,
+        },
+        customer_identifier: {
+          customer_phone: editData.customer?.customer_phone,
+          customer_email: editData.customer?.customer_email,
+        },
+      };
+
+      await axios.put(`/customer/update/${id}`, payload, {
+        headers: {
+          token: loginEmployee,
+          // "Content-Type": "application/json",
+        },
+      });
+
+      setEditRow(null);
+      setEditData({});
+      toast.success("Customer updated successfully!");
+
+      // Refetch updated data
+      const refreshed = await axios.get("/customers", {
+        headers: { token: loginEmployee },
+      });
+      setCustomers(refreshed.data.msg || []);
+    } catch (error) {
+      console.log("Edit error:", error);
+      toast.error("Failed to update customer!");
+    }
+  };
 
 
   return (
@@ -82,17 +169,72 @@ function Customers() {
                     <tr key={cus.customer_id} style={{ fontSize: "15px" }}>
                       <td>{index + 1}</td>
                       <td>
-                          {cus.customer_first_name}
+                        {editRow === cus.customer_id ? (
+                          <input
+                            className="form-control"
+                            value={editData.customer.customer_first_name}
+                            onChange={(e) =>
+                              handleInputChange(
+                                "customer",
+                                "customer_first_name",
+                                e.target.value
+                              )
+                            }
+                          />
+                        ) : (
+                          cus.customer_first_name
+                        )}
                       </td>
                       <td>
-                        {cus.customer_last_name}
+                        {editRow === cus.customer_id ? (
+                          <input
+                            className="form-control"
+                            value={editData.customer.customer_last_name}
+                            onChange={(e) =>
+                              handleInputChange(
+                                "customer",
+                                "customer_last_name",
+                                e.target.value
+                              )
+                            }
+                          />
+                        ) : (
+                          cus.customer_last_name
+                        )}
                       </td>
                       <td>
-        
-                          {cus.customer_email}
+                        {editRow === cus.customer_id ? (
+                          <input
+                            className="form-control"
+                            value={editData.customer.customer_email}
+                            onChange={(e) =>
+                              handleInputChange(
+                                "customer",
+                                "customer_email",
+                                e.target.value
+                              )
+                            }
+                          />
+                        ) : (
+                          cus.customer_email
+                        )}
                       </td>
                       <td>
-                          {cus.customer_phone_number}
+                        {editRow === cus.customer_id ? (
+                          <input
+                            className="form-control"
+                            value={editData.customer.customer_phone_number}
+                            onChange={(e) =>
+                              handleInputChange(
+                                "customer",
+                                "customer_phone_number",
+                                e.target.value
+                              )
+                            }
+                          />
+                        ) : (
+                          cus.customer_phone_number
+                        )}
                       </td>
                       <td>
                         {cus.customer_added_date
@@ -103,6 +245,24 @@ function Customers() {
                           : "N/A"}
                       </td>
                       <td className="d-flex gap-2">
+                        {editRow === cus.customer_id ? (
+                          <>
+                            <button
+                              className="btn btn-success btn-sm"
+                              onClick={() => handleSaveEdit(cus.customer_id)}
+                              style={{ fontSize: "12px" }}
+                            >
+                              <small>Save</small>
+                            </button>
+                            <button
+                              className="btn btn-secondary btn-sm"
+                              onClick={handleCancelEdit}
+                              style={{ fontSize: "12px" }}
+                            >
+                              <small>Cancel</small>
+                            </button>
+                          </>
+                        ) : (
                           <>
                             <i
                               style={{
@@ -111,8 +271,8 @@ function Customers() {
                                 fontSize: "19px",
                               }}
                               className="bi bi-pencil-square fw-bold"
-                            //   onClick={() => handleEditClick(cus)}
-                            ></i>
+                              onClick={() => handleEditClick(cus)}
+                            />
                             <i
                               style={{
                                 color: "red",
@@ -120,19 +280,14 @@ function Customers() {
                                 fontSize: "19px",
                               }}
                               className="bi bi-trash-fill fw-bold"
-                            //   onClick={() => handleDelete(cus.customer_id)}
+                              onClick={() => handleDelete(cus.customer_id)}
                             ></i>
                           </>
+                          
+                        )}
                       </td>
                     </tr>
                   ))}
-                  {customers.length === 0 && (
-                    <tr>
-                      <td colSpan="8" className="text-center">
-                        No employee data available.
-                      </td>
-                    </tr>
-                  )}
                 </tbody>
               </table>
             </div>
@@ -144,3 +299,4 @@ function Customers() {
 }
 
 export default Customers;
+                               
