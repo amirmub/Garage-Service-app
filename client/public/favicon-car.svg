@@ -1,0 +1,13 @@
+<!-- Save as favicon-car.svg -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none" stroke="#B8101F" stroke-width="3" stroke-linejoin="round" stroke-linecap="round">
+  <!-- Car body -->
+  <rect x="8" y="24" width="88" height="16" rx="4" ry="4" fill="#B8101F"/>
+  <!-- Windows -->
+  <path d="M20 24 L28 16 L36 16 L44 24 Z" fill="#FFF" />
+  <!-- Wheels -->
+  <circle cx="18" cy="44" r="6" fill="#555" />
+  <circle cx="46" cy="44" r="6" fill="#555" />
+  <!-- Wheel rims -->
+  <circle cx="18" cy="44" r="3" fill="#B8101F" />
+  <circle cx="46" cy="44" r="3" fill="#B8101F" />
+</svg>
