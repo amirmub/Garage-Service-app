@@ -34,12 +34,17 @@ router.use(deleteEmployee);
 const addCustomer = require("./addCustomer.route");
 router.use(addCustomer)
 
-// add customer route
+// get All customer route
 const getAllCustomer = require("./getAllCustomer.route");
 router.use(getAllCustomer)
 
-// add customer route
+// Edit customer route
 const editCustomer = require("./editCustomer.route");
 router.use(editCustomer)
+
+// Delete customer route
+const deleteCustomer = require("./deleteCustomer.route");
+router.use(deleteCustomer)
+
 
 module.exports = router;
