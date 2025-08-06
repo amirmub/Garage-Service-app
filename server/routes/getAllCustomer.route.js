@@ -6,6 +6,6 @@ const getAllCustomer = require("../controller/getAllCustomer.controller");
 // middleware function
 const authMiddleware = require("../middleware/authMiddleware")
 
-router.get("/api/customers",[authMiddleware.tokenVerify,authMiddleware.isAdmin],getAllCustomer.allCustomer);
+router.get("/api/customers",authMiddleware.tokenVerify,getAllCustomer.allCustomer);
 
 module.exports =  router;

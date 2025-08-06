@@ -7,6 +7,6 @@ const addCustomerController  = require('../controller/addCustomer.controller');
 const authMiddleware = require("../middleware/authMiddleware")
 
 // Route to add a new customer
-router.post('/api/customer', [authMiddleware.tokenVerify,authMiddleware.isAdmin], addCustomerController.addCustomer);
+router.post('/api/customer', authMiddleware.tokenVerify, addCustomerController.addCustomer);
 
 module.exports = router;
