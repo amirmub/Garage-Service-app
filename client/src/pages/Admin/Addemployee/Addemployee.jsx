@@ -47,8 +47,8 @@ function AddEmployee() {
         // to pass using header to backend
         {
           headers: {
-            token: loginEmployee,
-          },
+            Authorization: `Bearer ${loginEmployee}`,
+          }
         }
       );
 

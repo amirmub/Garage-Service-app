@@ -13,6 +13,7 @@ import AddCustomer from "./pages/Customer/AddCustomer/AddCustomer";
 import Customers from "./pages/Customer/Customers/Customers";
 import Vehicle from "./pages/Vehicle/Vehicle";
 import AddOrder from "./pages/Order/AddOrder/AddOrder";
+import Services from "./pages/Services/Services";
 
 function App() {
   return (
@@ -41,6 +42,15 @@ function App() {
           element={
             <PrivateRoute role={[3]}>
               <Employee />
+            </PrivateRoute>
+          }
+        ></Route>
+
+        <Route
+          path="/admin/services"
+          element={
+            <PrivateRoute role={[3]}>
+              <Services />
             </PrivateRoute>
           }
         ></Route>

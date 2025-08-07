@@ -25,7 +25,9 @@ function Employee() {
     async function fetchData() {
       try {
         const response = await axios.get("/admin/employee", {
-          headers: { token: loginEmployee },
+          headers: {
+            Authorization: `Bearer ${loginEmployee}`,
+          },
         });
         if (response.data?.msg) {
           setEmployees(response.data.msg);
@@ -46,7 +48,9 @@ function Employee() {
       return;
     try {
       await axios.delete(`/admin/delete/${id}`, {
-        headers: { token: loginEmployee },
+      headers: {
+            Authorization: `Bearer ${loginEmployee}`,
+          },
       });
 
       setEmployees((prev) => prev.filter((emp) => emp.employee_id !== id));
@@ -105,10 +109,9 @@ function Employee() {
       };
 
       await axios.put(`/admin/update/${id}`, payload, {
-        headers: {
-          token: loginEmployee,
-          "Content-Type": "application/json",
-        },
+       headers: {
+            Authorization: `Bearer ${loginEmployee}`,
+          },
       });
 
       setEditRow(null);
@@ -117,7 +120,9 @@ function Employee() {
 
       // Refetch updated data
       const refreshed = await axios.get("/admin/employee", {
-        headers: { token: loginEmployee },
+          headers: {
+              Authorization: `Bearer ${loginEmployee}`,
+            },
       });
       setEmployees(refreshed.data.msg || []);
     } catch (error) {

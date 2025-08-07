@@ -23,7 +23,9 @@ function Customers() {
     async function fetchData() {
       try {
         const response = await axios.get("/customers", {
-          headers: { token: loginEmployee },
+          headers: {
+            Authorization: `Bearer ${loginEmployee}`,
+          },
         });
         if (response.data?.msg) {
           setCustomers(response.data.msg);

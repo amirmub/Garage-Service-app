@@ -43,7 +43,7 @@ function AddCustomer() {
         },
         {
           headers: {
-            token: loginEmployee,
+            Authorization: `Bearer ${loginEmployee}`,
           },
         }
       );
