@@ -48,7 +48,7 @@ function AddCustomer() {
         }
       );
       toast.success("Customer added successfully!");
-      setTimeout(() => navigate("/customers"), 2000);
+      setTimeout(() => navigate("/add-vehicle"), 2000);
     } catch (error) {
       toast.error(error.response?.data.error || "Failed to add customer.");
     } 

@@ -13,7 +13,7 @@
 .vertical-line {
   width: 2px;
   background-color: #ccc;
-  height: 105%;
+  height: 90%;
   position: absolute;
   top: 0;
   left: 50%;
@@ -29,10 +29,7 @@
   margin-top: 100px;
   margin-bottom: 650px;
 }
-.red-3 {
-  margin-top: -170px;
-  /* margin-bottom: 650px; */
-}
+
 
 @media (max-width: 540px) {
   .sidebar-step {

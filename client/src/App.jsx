@@ -8,11 +8,11 @@ import Footer from "./components/Footer/Footer";
 import TopHeader from "./components/TopHeader/TopHeader";
 import UnAuthorized from "./pages/UnAuthorized/UnAuthorized";
 import { PrivateRoute } from "./components/Auth/PrivetRoute";
-import Order from "./pages/Order/Order";
 import Employee from "./pages/Admin/Employee/Employee";
 import AddCustomer from "./pages/Customer/AddCustomer/AddCustomer";
 import Customers from "./pages/Customer/Customers/Customers";
 import Vehicle from "./pages/Vehicle/Vehicle";
+import AddOrder from "./pages/Order/AddOrder/AddOrder";
 
 function App() {
   return (
@@ -25,14 +25,6 @@ function App() {
         <Route path="/unAuthorized" element={<UnAuthorized />}></Route>
 
         {/* any authenticated user access*/}
-        <Route
-          path="/admin/order"
-          element={
-            <PrivateRoute role={[1, 2, 3]}>
-              <Order />
-            </PrivateRoute>
-          }
-        ></Route>
 
         {/* authenticated and also authorization for only admin*/}
         <Route
@@ -81,6 +73,15 @@ function App() {
             </PrivateRoute>
           }
         ></Route>
+        
+          <Route
+            path="/add-order"
+            element={
+              <PrivateRoute role={[2,3]}>
+                <AddOrder />
+              </PrivateRoute>
+            }
+          ></Route>
       </Routes>
       <Footer />
     </>
