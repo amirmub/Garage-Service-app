@@ -47,4 +47,11 @@ const deleteCustomer = require("./deleteCustomer.route");
 router.use(deleteCustomer)
 
 
+
+
+// Add Vehicle route
+const addVehicle = require("./addVehicle.route");
+router.use(addVehicle)
+
+
 module.exports = router;
