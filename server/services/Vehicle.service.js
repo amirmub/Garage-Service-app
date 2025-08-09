@@ -1,5 +1,6 @@
 const dbConnection = require('../config/db.config');
 
+// function to add a vehicle
 async function addVehicle(vehicleData) {
     const {
         vehicle_year,
@@ -61,4 +62,24 @@ async function addVehicle(vehicleData) {
     }
 }
 
-module.exports = { addVehicle };
+// function to get all vehicles
+async function getAllVehicles() {
+    try {
+        const rows = await dbConnection.query(`
+            SELECT * FROM customer_vehicle_info
+            ORDER BY vehicle_id DESC;
+        `);
+
+        if (!rows || rows.length === 0) {
+            return { error: "No vehicles found", status: 404 };
+        }
+
+        return { message: rows, status: 200 };
+
+    } catch (error) {
+        console.error("Error fetching vehicles:", error);
+        return { error: "Internal server error", status: 500 };
+    }
+}
+
+module.exports = { addVehicle, getAllVehicles };

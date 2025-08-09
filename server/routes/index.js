@@ -50,7 +50,7 @@ router.use(deleteCustomer)
 
 
 // Add Vehicle route
-const addVehicle = require("./addVehicle.route");
+const addVehicle = require("./Vehicle.route");
 router.use(addVehicle)
 
 // add services 
