@@ -25,6 +25,11 @@ async function editCustomer(customerId, updatedData) {
       await db.query(sql, [...values, customerId]);
     }
 
+    if (updatedData.customer_vehicle_info) {
+      const { sql, values } = buildUpdateQuery('customer_vehicle_info', updatedData.customer_vehicle_info, 'customer_id');
+      await db.query(sql, [...values, customerId]);
+    }
+
     return { status: 200, message: "Customer updated successfully" };
   } catch (error) {
     console.error("Error updating customer:", error);
