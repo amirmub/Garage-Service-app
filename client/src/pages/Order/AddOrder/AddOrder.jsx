@@ -6,6 +6,7 @@ import axios from "../../../utils/axios";
 function AddOrder() {
   const [orderData, setOrderData] = useState({});
   const [vehicleData, setVehicleData] = useState({});
+  const [servicesData, setServicesData] = useState([]);
 
   const auth = getAuth();
   const loggedUser = auth?.token || "no token";
@@ -40,6 +41,23 @@ function AddOrder() {
       }
     }
     fetchVehicleData();
+  }, []);
+
+
+  // to get services data
+  useEffect(() => {
+    async function fetchServicesData() {
+      try {
+        const response = await axios.get("/all-services", {
+          headers: { Authorization: `Bearer ${loggedUser}` },
+        });
+        setServicesData(response.data.data);
+        console.log("Services data fetched successfully:", response.data);
+      } catch (error) {
+        console.error("Error fetching services data:", error);
+      }
+    }
+    fetchServicesData();
   }, []);
 
   return (
@@ -118,69 +136,33 @@ function AddOrder() {
             {/* SERVICES CHECKLIST */}
             <div className="card mb-4">
               <div className="card-body">
-                <h5 className="fw-bold text-primary mb-3">Choose service</h5>
-
-                {[
-                  {
-                    id: "service1",
-                    title: "Oil change",
-                    desc: "Every 5,000 kilometers or so, you need to change the oil in your car to keep your engine in the best possible shape.",
-                  },
-                  {
-                    id: "service2",
-                    title: "Spark Plug replacement",
-                    desc: "Spark plugs are a small part that can cause huge problems. Their job is to ignite the fuel in your engine, helping it start.",
-                  },
-                  {
-                    id: "service3",
-                    title: "Fuel Cap tightening",
-                    desc: "Loose fuel caps are actually a main reason why the 'check engine' light in a car comes on.",
-                  },
-                  {
-                    id: "service4",
-                    title: "Oxygen Sensor replacement",
-                    desc: "Oxygen sensors measure the concentration of oxygen in the exhaust gases in order to optimize engine performance and emissions.",
-                  },
-                  {
-                    id: "service5",
-                    title: "Brake work",
-                    desc: "Brake work is important, especially because one quarter of all car accidents are caused by a failure to stop.",
-                  },
-                  {
-                    id: "service6",
-                    title: "Tire repairs and changes",
-                    desc: "Without good, inflated tires, you lose speed, control, and fuel efficiency, hence the need to get them patched if there’s a leak.",
-                  },
-                  {
-                    id: "service7",
-                    title: "The Ignition System",
-                    desc: "A car’s ignition system includes its battery, starter, and the ignition itself.",
-                  },
-                  {
-                    id: "service8",
-                    title: "Programming the camera software",
-                    desc: "Ensures cameras operate correctly to provide driver assistance and safety features.",
-                  },
-                ].map((service) => (
-                  <div
-                    className="form-check mb-3 border-bottom pb-2"
-                    key={service.id}
+                <h5 className="fw-bold text-primary mx-2 mb-3">Choose service</h5>
+               {
+                servicesData.map((service) => (
+                <div
+                  className="form-check mb-3 border-bottom pb-2 d-flex justify-content-between align-items-start"
+                  key={service.service_id}
+                >
+                  <label
+                    style={{ cursor: "pointer" }}
+                    className="form-check-label px-1 mb-0"
+                    htmlFor={service.service_id}
                   >
-                    <input
-                      className="form-check-input"
-                      type="checkbox"
-                      id={service.id}
-                    />
-                    <label
-                      className="form-check-label mx-3"
-                      htmlFor={service.id}
-                    >
-                      <strong>{service.title}</strong>
-                      <br />
-                      {service.desc}
-                    </label>
-                  </div>
+                    <strong>{service.service_name}</strong>
+                    <br />
+                    <small>{service.service_description}</small>
+                  </label>
+
+                  <input
+                    className="form-check-input mt-3 mx-3 p-2"
+                    style={{ cursor: "pointer" }}
+                    type="checkbox"
+                    id={service.service_id}
+                  />
+                </div>
+
                 ))}
+
               </div>
             </div>
 

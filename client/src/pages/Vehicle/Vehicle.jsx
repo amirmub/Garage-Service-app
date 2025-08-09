@@ -90,7 +90,9 @@ function Vehicle() {
       );
 
       toast.success("Vehicle added successfully!");
+     setTimeout(() => {
       navigate("/add-order");
+    }, 1500)
 
     } catch (error) {
       console.error("Error adding vehicle:", error);
