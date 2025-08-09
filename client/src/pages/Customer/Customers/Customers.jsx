@@ -44,7 +44,9 @@ function Customers() {
       return;
     try {
       await axios.delete(`/customer/delete/${id}`, {
-        headers: { token: loginEmployee },
+       headers: {
+            Authorization: `Bearer ${loginEmployee}`,
+          },
       });
 
       setCustomers((prev) => prev.filter((cus) => cus.customer_id !== id));
@@ -97,9 +99,9 @@ function Customers() {
       };
 
       await axios.put(`/customer/update/${id}`, payload, {
-        headers: {
-          token: loginEmployee,
-        },
+       headers: {
+            Authorization: `Bearer ${loginEmployee}`,
+          },
       });
 
       setEditRow(null);
@@ -107,7 +109,9 @@ function Customers() {
       toast.success("Customer updated successfully!");
 
       const refreshed = await axios.get("/customers", {
-        headers: { token: loginEmployee },
+       headers: {
+            Authorization: `Bearer ${loginEmployee}`,
+          },
       });
       setCustomers(refreshed.data.msg || []);
     } catch (error) {

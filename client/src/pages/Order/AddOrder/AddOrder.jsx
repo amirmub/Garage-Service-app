@@ -1,7 +1,32 @@
-import React from 'react';
+import { useEffect, useState } from "react";
 import Sidebar from "../.../../../../components/Sidebar/Sidebar"
+import { getAuth } from "../../../utils/auth";
+import axios from "../../../utils/axios";
 
 function AddOrder() {
+  const [orderData, setOrderData] = useState({});
+
+  const auth = getAuth();
+  const loggedUser = auth?.token || "no token";
+
+  // to get customer data
+  useEffect(() => {
+    async function fetchOrderData() {
+      try {
+        const response = await axios.get("/customers", {
+          headers: { Authorization: `Bearer ${loggedUser}` },
+        });
+        setOrderData(response.data.msg);
+        console.log("Order data fetched successfully:", response.data); 
+      }
+      catch (error) {
+        console.error("Error fetching order data:", error);
+      }
+    }
+    fetchOrderData();
+  }, []);
+
+
   return (
     <>
       <div className="container-fluid">
@@ -12,22 +37,22 @@ function AddOrder() {
           <div className="col-md-9 col-lg-10 p-5">
             <div className="d-flex align-items-center mb-2">
               <h3 className="text-primary fw-bold me-1">Create a new order</h3>
-              <div className="border-bottom border-danger" style={{ width: '40px' }}></div>
+              {/* <div className="border-bottom border-danger" style={{ width: '40px' }}></div> */}
             </div>
 
             {/* CUSTOMER INFO CARD */}
             <div className="card mb-3">
               <div className="card-body d-flex justify-content-between">
                 <div>
-                  <h5 className="fw-bold">Amir Mubarek</h5>
-                  <p className="mb-1"><strong>Email:</strong> Amir@gmail.com</p>
-                  <p className="mb-1"><strong>Phone Number:</strong> 240835487</p>
+                  <h5 className="fw-bold"><strong>Name: </strong>{orderData[0]?.customer_first_name} {orderData[0]?.customer_last_name}</h5>
+                  <p className="mb-1"><strong>Email: </strong> {orderData[0]?.customer_email}</p>
+                  <p className="mb-1"><strong>Phone Number: </strong> {orderData[0]?.customer_phone_number}</p>
                   {/* <p className="mb-1"><strong>Active Customer:</strong> Yes</p>
                   <a href="#" className="text-danger text-decoration-none">
                     Edit customer info <i className="bi bi-pencil-square"></i>
                   </a> */}
                 </div>
-                <button className="btn btn-link text-danger fs-4 p-0">✖</button>
+                {/* <button className="btn btn-link text-danger fs-4 p-0">✖</button> */}
               </div>
             </div>
 
@@ -35,17 +60,17 @@ function AddOrder() {
             <div className="card mb-4">
               <div className="card-body d-flex justify-content-between">
                 <div>
-                  <h5 className="fw-bold">BMW X7</h5>
-                  <p className="mb-1"><strong>Vehicle color:</strong> Gold</p>
-                  <p className="mb-1"><strong>Vehicle tag:</strong> 0101AD</p>
-                  <p className="mb-1"><strong>Vehicle year:</strong> 2020</p>
-                  <p className="mb-1"><strong>Vehicle mileage:</strong> 12000</p>
-                  <p className="mb-1"><strong>Vehicle serial:</strong> 44844d4844ffg</p>
+                  <h5 className="fw-bold"><i className="fa text-danger  fa-car mx-1"></i> {orderData[0]?.vehicle_model}</h5>
+                  <p className="mb-1"><strong>Vehicle color:</strong> {orderData[0]?.vehicle_color}</p>
+                  <p className="mb-1"><strong>Vehicle tag:</strong> {orderData[0]?.vehicle_tag}</p>
+                  <p className="mb-1"><strong>Vehicle year:</strong> {orderData[0]?.vehicle_year}</p>
+                  <p className="mb-1"><strong>Vehicle serial:</strong> {orderData[0]?.vehicle_serial}</p>
+                  <p className="mb-1"><strong>Vehicle type:</strong> {orderData[0]?.vehicle_type}</p>
                   {/* <a href="#" className="text-danger text-decoration-none">
                     Edit vehicle info <i className="bi bi-pencil-square"></i>
                   </a> */}
                 </div>
-                <button className="btn btn-link text-danger fs-4 p-0">✖</button>
+                {/* <button className="btn btn-link text-danger fs-4 p-0">✖</button> */}
               </div>
             </div>
 
