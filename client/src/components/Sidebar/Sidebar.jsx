@@ -9,13 +9,13 @@ function Sidebar() {
             </div>
             <nav className="nav flex-column">
                 <Link className="nav-link" to="#">Dashboard</Link>
-                <Link className="nav-link" to="#">Orders</Link>
-                <Link className="nav-link" to="#">New order</Link>
-                <Link className="nav-link" to="#">Add employee</Link>
-                <Link className="nav-link" to="#">Employees</Link>
-                <Link className="nav-link" to="#">Add customer</Link>
-                <Link className="nav-link" to="#">Customers</Link>
-                <Link className="nav-link" to="#">Services</Link>
+                <Link className="nav-link" to="/order">Orders</Link>
+                {/* <Link className="nav-link" to="/add-order">New order</Link> */}
+                <Link className="nav-link" to="/add-employee">Add employee</Link>
+                <Link className="nav-link" to="/admin/employee">Employees</Link>
+                <Link className="nav-link" to="/add-customer">Add customer</Link>
+                <Link className="nav-link" to="/customers">Customers</Link>
+                <Link className="nav-link" to="/admin/services">Services</Link>
             </nav>
       </div>
 
