@@ -1,29 +1,28 @@
 import { Link } from "react-router-dom";
 import Sidebar from "../../components/Sidebar/Sidebar";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import axios from "../../utils/axios";
 import { getAuth } from "../../utils/auth";
 import { ClipLoader } from "react-spinners";
-import { useRef } from "react";
-
+import { toast } from "react-toastify";
 
 function Services() {
   const [services, setServices] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  const [editRow, setEditRow] = useState(null);
+  const [editData, setEditData] = useState({ service_name: "", service_description: "" });
+
   const auth = getAuth();
   const loggedUser = auth?.token || "no token";
 
-//   get all services from backend
+  // Fetch all services
   useEffect(() => {
     async function fetchingData() {
       try {
         const result = await axios.get("/all-services", {
-          headers: {
-            Authorization: `Bearer ${loggedUser}`,
-          },
+          headers: { Authorization: `Bearer ${loggedUser}` },
         });
-        // Safely assign services array or fallback to empty array
         setServices(Array.isArray(result.data.data) ? result.data.data : []);
       } catch (error) {
         console.log(error.response || error);
@@ -35,49 +34,96 @@ function Services() {
     fetchingData();
   }, []);
 
-   //  to add services
-   const nameDom = useRef();
-   const descriptionDom = useRef();
+  // Add service refs
+  const nameDom = useRef();
+  const descriptionDom = useRef();
 
-   async function handleSubmit(e) {
-    e.preventDefault()
+  async function handleSubmit(e) {
+    e.preventDefault();
     const nameValue = nameDom.current.value;
     const descriptionValue = descriptionDom.current.value;
 
     try {
-         const result = await axios.post("/add-service",{
-            service_name : nameValue,
-            service_description : descriptionValue,
-        },{
-          headers: {
-            Authorization: `Bearer ${loggedUser}`,
-          },
-        }
-    )
-        console.log(result);
-         const newService = result.data.msg; // Assumes backend returns the new service object
+      await axios.post(
+        "/add-service",
+        {
+          service_name: nameValue,
+          service_description: descriptionValue,
+        },
+        { headers: { Authorization: `Bearer ${loggedUser}` } }
+      );
 
-    // Add the new service to the existing list
-    setServices((prev) => [...prev, newService]);
-
-        // Clear input fields after successful submission
-        nameDom.current.value = "";
-        descriptionDom.current.value = "";
-
-        const refreshed = await axios.get("/all-services", {
-       headers: {
-            Authorization: `Bearer ${loggedUser}`,
-          },
+      const refreshed = await axios.get("/all-services", {
+        headers: { Authorization: `Bearer ${loggedUser}` },
       });
-    setServices(Array.isArray(refreshed.data.data) ? refreshed.data.data : []);
+      setServices(Array.isArray(refreshed.data.data) ? refreshed.data.data : []);
 
+      nameDom.current.value = "";
+      descriptionDom.current.value = "";
     } catch (error) {
-        console.log(error.response);
-        
+      console.log(error.response);
     }
+  }
 
-   }
+  // Delete service
+  async function handleDelete(serviceId) {
+    if (!window.confirm("Are you sure you want to delete this service?")) return;
 
+    try {
+      await axios.delete(`/delete-service/${serviceId}`, {
+        headers: { Authorization: `Bearer ${loggedUser}` },
+      });
+      setServices((prev) => prev.filter((service) => service.service_id !== serviceId));
+    } catch (error) {
+      console.log(error.response);
+    }
+  }
+
+  // Edit service handlers
+  const handleEditClick = (service) => {
+    setEditRow(service.service_id);
+    setEditData({
+      service_name: service.service_name,
+      service_description: service.service_description,
+    });
+  };
+
+  const handleInputChange = (field, value) => {
+    setEditData((prev) => ({
+      ...prev,
+      [field]: value,
+    }));
+  };
+
+  const handleCancelEdit = () => {
+    setEditRow(null);
+    setEditData({ service_name: "", service_description: "" });
+  };
+
+  const handleSaveEdit = async (id) => {
+    try {
+      await axios.put(
+        `/edit-service/${id}`,
+        {
+
+            service_name: editData.service_name,
+            service_description: editData.service_description,
+        },
+        { headers: { Authorization: `Bearer ${loggedUser}` } }
+      );
+
+      toast.success("Service updated successfully!");
+      setEditRow(null);
+
+      const refreshed = await axios.get("/all-services", {
+        headers: { Authorization: `Bearer ${loggedUser}` },
+      });
+      setServices(Array.isArray(refreshed.data.data) ? refreshed.data.data : []);
+    } catch (error) {
+      console.log("Edit error:", error);
+      toast.error("Failed to update service!");
+    }
+  };
 
   return (
     <div className="container-fluid">
@@ -88,13 +134,9 @@ function Services() {
 
         <div className="col-md-9 col-lg-10 px-5 py-4">
           <div className="container my-3">
-            <h3 className="mb-2">
-              Services we provide <span className="text-danger"></span>
-            </h3>
-            <small className="mb-5">
-              We offer a wide range of professional services tailored to meet your unique needs. 
-              Whether it's routine maintenance or complex diagnostics, our team ensures reliable,
-               high-quality solutions with a customer-first approach.
+            <h3 className="mb-2">Services we provide</h3>
+            <small>
+              We offer a wide range of professional services tailored to meet your unique needs.
             </small>
 
             <div className="list-group mb-5 mt-3">
@@ -102,64 +144,89 @@ function Services() {
                 <div className="my-5" style={{ display: "flex", justifyContent: "center" }}>
                   <ClipLoader color="#f00" loading={loading} size={30} />
                 </div>
-
               ) : services.length === 0 ? (
                 <div className="text-muted">No services available.</div>
               ) : (
-                services.map(({ service_id, service_name, service_description }) => (
-                  <div key={service_id}
+                services.map((service) => (
+                  <div
+                    key={service.service_id}
                     className="list-group-item d-flex justify-content-between align-items-start p-3"
                   >
                     <div className="col-12 col-md-9">
-                        <h6>{service_name}</h6>
-                        <small
-                            style={{
-                                display: "block",
-                                maxWidth: "100%",
-                                wordWrap: "break-word",
-                                whiteSpace: "pre-wrap"
-                            }}
-                            >
-                            {service_description}
-                        </small>
-
+                      {editRow === service.service_id ? (
+                        <>
+                          <input
+                            type="text"
+                            value={editData.service_name}
+                            onChange={(e) => handleInputChange("service_name", e.target.value)}
+                            className="form-control mb-2"
+                          />
+                          <textarea
+                            value={editData.service_description}
+                            onChange={(e) => handleInputChange("service_description", e.target.value)}
+                            className="form-control"
+                          />
+                        </>
+                      ) : (
+                        <>
+                          <h6>{service.service_name}</h6>
+                          <small style={{ display: "block", whiteSpace: "pre-wrap" }}>
+                            {service.service_description}
+                          </small>
+                        </>
+                      )}
                     </div>
 
                     <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                    <Link to="#" style={{ display: "flex", alignItems: "center" }}>
-                        <i
-                        className="bi bi-pencil-square"
-                        style={{ color: "#091436", fontWeight: "900", verticalAlign: "middle", fontSize: "1.1rem" }}
-                        />
-                    </Link>
-                    <Link to="#" style={{ display: "flex", alignItems: "center" }}>
-                        <i
-                        className="fas fa-trash"
-                        style={{ color: "red", verticalAlign: "middle", fontSize: "1.1rem" }}
-                        />
-                    </Link>
+                      {editRow === service.service_id ? (
+                        <>
+                          <button
+                            className="btn btn-success btn-sm"
+                            onClick={() => handleSaveEdit(service.service_id)}
+                          >
+                            Save
+                          </button>
+                          <button
+                            className="btn btn-secondary btn-sm"
+                            onClick={handleCancelEdit}
+                          >
+                            Cancel
+                          </button>
+                        </>
+                      ) : (
+                        <>
+                          <Link to="#" onClick={() => handleEditClick(service)}>
+                            <i
+                              className="bi bi-pencil-square"
+                              style={{
+                                color: "#091436",
+                                fontWeight: "900",
+                                fontSize: "1.1rem",
+                              }}
+                            />
+                          </Link>
+                          <Link to="#" onClick={() => handleDelete(service.service_id)}>
+                            <i
+                              className="fas fa-trash"
+                              style={{ color: "red", fontSize: "1.1rem" }}
+                            />
+                          </Link>
+                        </>
+                      )}
                     </div>
-
                   </div>
                 ))
               )}
             </div>
 
-            <h5 className="mb-3">
-              Add a new service <span className="text-danger"></span>
-            </h5>
+            <h5 className="mb-3">Add a new service</h5>
             <form onSubmit={handleSubmit}>
               <div className="mb-3">
-                <input
-                ref={nameDom}
-                  type="text"
-                  className="form-control"
-                  placeholder="Service name"
-                />
+                <input ref={nameDom} type="text" className="form-control" placeholder="Service name" />
               </div>
               <div className="mb-3">
                 <textarea
-                ref={descriptionDom}
+                  ref={descriptionDom}
                   className="form-control"
                   rows="3"
                   placeholder="Service description"
