@@ -6,8 +6,6 @@ async function allCustomer() {
         FROM customer_identifier
         INNER JOIN customer_info 
         ON customer_identifier.customer_id = customer_info.customer_id 
-        INNER JOIN customer_vehicle_info 
-        ON customer_identifier.customer_id = customer_vehicle_info.customer_id 
         ORDER BY customer_identifier.customer_id DESC;
         `;
     const rows = await dbConnection.query(result);

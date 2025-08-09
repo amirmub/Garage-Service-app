@@ -8,7 +8,7 @@ import "react-toastify/dist/ReactToastify.css";
 import { useNavigate } from "react-router-dom";
 
 function Vehicle() {
-  const [customers, setCustomers] = useState([]);
+  const [customers, setCustomers] = useState({});
   const navigate = useNavigate();
 
 
@@ -29,11 +29,13 @@ function Vehicle() {
     async function fetchData() {
       try {
         const response = await axios.get("/customers", {
-          headers: { token: loginEmployee },
+          headers: {
+            Authorization: `Bearer ${loginEmployee}`,
+          },
         });
-        if (response.data?.msg) {
           setCustomers(response.data.msg);
-        }
+          console.log(response.data);
+
       } catch (error) {
         console.log("Error fetching customers:", error);
       }
