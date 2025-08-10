@@ -8,4 +8,7 @@ const authMiddleware = require("../middleware/authMiddleware")
 // add orders route
 router.post("/api/order",[authMiddleware.tokenVerify,authMiddleware.isAdmin],orderController.addOrder);
 
+// get orders route
+router.get("/api/orders",[authMiddleware.tokenVerify,authMiddleware.isAdmin],orderController.getOrder);
+
 module.exports = router

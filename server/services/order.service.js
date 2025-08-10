@@ -71,4 +71,22 @@ async function addOrder(orderData) {
   }
 }
 
-module.exports = { addOrder };
+// get a  order 
+async function getOrder() {
+  try {
+      const result = `SELECT * 
+          FROM orders
+          INNER JOIN order_info
+          ON  orders.order_id = order_info.order_id
+          ORDER BY orders.order_id DESC;
+          `;
+      const rows = await db.query(result);
+      return { message: rows, status: 200 };
+  
+    } catch (error) {
+      console.error("Add Customer Error:", error.message);
+      return { error: "Internal Server Error", status: 500 };
+    }  
+}
+
+module.exports = { addOrder, getOrder };

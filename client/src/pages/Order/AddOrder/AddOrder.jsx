@@ -2,12 +2,16 @@ import { useEffect, useRef, useState } from "react";
 import Sidebar from "../.../../../../components/Sidebar/Sidebar";
 import { getAuth } from "../../../utils/auth";
 import axios from "../../../utils/axios";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import { useNavigate } from "react-router-dom";
 
 function AddOrder() {
+  const navigate = useNavigate();
   const [orderData, setOrderData] = useState({});
   const [vehicleData, setVehicleData] = useState({});
   const [servicesData, setServicesData] = useState([]);
-  const [selectedServices, setSelectedServices] = useState([]); // store selected IDs
+  const [selectedServices, setSelectedServices] = useState([]); // store selected service objects
   const servicesDom = useRef({});
 
   const auth = getAuth();
@@ -26,7 +30,7 @@ function AddOrder() {
       }
     }
     fetchOrderData();
-  }, []);
+  }, [loggedUser]);
 
   // to get vehicle data
   useEffect(() => {
@@ -41,7 +45,7 @@ function AddOrder() {
       }
     }
     fetchVehicleData();
-  }, []);
+  }, [loggedUser]);
 
   // to get services data
   useEffect(() => {
@@ -56,23 +60,66 @@ function AddOrder() {
       }
     }
     fetchServicesData();
-  }, []);
-  
-   // Handle checkbox click
+  }, [loggedUser]);
+
+  // Handle checkbox click: store full service objects instead of IDs
   const handleServiceSelect = (serviceId, checked) => {
     setSelectedServices((prev) => {
       if (checked) {
-        return [...prev, serviceId]; // add if checked
+        // Find service object by id
+        const serviceObj = servicesData.find((s) => s.service_id === serviceId);
+        if (!serviceObj) return prev;
+        // Avoid duplicates
+        if (prev.find((s) => s.service_id === serviceId)) return prev;
+        return [...prev, serviceObj];
       } else {
-        return prev.filter((id) => id !== serviceId); // remove if unchecked
+        return prev.filter((s) => s.service_id !== serviceId);
       }
     });
   };
 
-  console.log("Selected Services IDs:", selectedServices);
-  
+  const descriptionDom = useRef({});
+  const priceDom = useRef({});
+
+  const handleAdditionalRequest = async (e) => {
+    e.preventDefault();
+    const descriptionValue = descriptionDom.current.value;
+    const priceValue = priceDom.current.value;
+
+    try {
+      const response = await axios.post(
+        "/order",
+        {
+          additional_request: descriptionValue,
+          order_total_price: priceValue,
+        },
+        {
+          headers: { Authorization: `Bearer ${loggedUser}` },
+        }
+      );
+
+      setTimeout(() => {
+        navigate("/order-detail", {
+        state: {
+          selectedServices: selectedServices, // full objects now
+          orderResponse: response.data,
+          additionalRequest: descriptionValue,
+          price: priceValue,
+          // order_status: 0, // newly created order starts as "Received"
+        },
+      });
+      }, 2000);
+
+      toast.success("Order submitted successfully!");
+    } catch (error) {
+      console.log(error);
+      toast.error("Failed to submit order.");
+    }
+  };
+
   return (
     <>
+      <ToastContainer position="top-right" autoClose={3000} />
       <div className="container-fluid">
         <div className="row">
           <div className="col-md-3 col-lg-2 sidebar d-flex flex-column p-2">
@@ -89,15 +136,13 @@ function AddOrder() {
                 <div>
                   <h5 className="fw-bold">
                     <strong>Name: </strong>
-                    {orderData[0]?.customer_first_name}{" "}
-                    {orderData[0]?.customer_last_name}
+                    {orderData[0]?.customer_first_name} {orderData[0]?.customer_last_name}
                   </h5>
                   <p className="mb-1">
                     <strong>Email: </strong> {orderData[0]?.customer_email}
                   </p>
                   <p className="mb-1">
-                    <strong>Phone Number: </strong>{" "}
-                    {orderData[0]?.customer_phone_number}
+                    <strong>Phone Number: </strong> {orderData[0]?.customer_phone_number}
                   </p>
                 </div>
               </div>
@@ -108,27 +153,22 @@ function AddOrder() {
               <div className="card-body d-flex justify-content-between">
                 <div>
                   <h5 className="fw-bold">
-                    <i className="fa text-danger fa-car mx-1"></i>{" "}
-                    {vehicleData[0]?.vehicle_make}
+                    <i className="fa text-danger fa-car mx-1"></i> {vehicleData[0]?.vehicle_make}
                   </h5>
                   <p className="mb-1">
-                    <strong>Vehicle color:</strong>{" "}
-                    {vehicleData[0]?.vehicle_color}
+                    <strong>Vehicle color:</strong> {vehicleData[0]?.vehicle_color}
                   </p>
                   <p className="mb-1">
                     <strong>Vehicle tag:</strong> {vehicleData[0]?.vehicle_tag}
                   </p>
                   <p className="mb-1">
-                    <strong>Vehicle year:</strong>{" "}
-                    {vehicleData[0]?.vehicle_year}
+                    <strong>Vehicle year:</strong> {vehicleData[0]?.vehicle_year}
                   </p>
                   <p className="mb-1">
-                    <strong>Vehicle serial:</strong>{" "}
-                    {vehicleData[0]?.vehicle_serial}
+                    <strong>Vehicle serial:</strong> {vehicleData[0]?.vehicle_serial}
                   </p>
                   <p className="mb-1">
-                    <strong>Vehicle type:</strong>{" "}
-                    {vehicleData[0]?.vehicle_type}
+                    <strong>Vehicle type:</strong> {vehicleData[0]?.vehicle_type}
                   </p>
                 </div>
               </div>
@@ -178,28 +218,35 @@ function AddOrder() {
                 <h5 className="fw-bold text-primary mb-3 d-flex align-items-center">
                   Additional requests
                 </h5>
-                <div className="mb-3">
-                  <textarea
-                    className="form-control"
-                    rows="4"
-                    placeholder="Service description"
-                  ></textarea>
-                </div>
-                <div className="mb-3">
-                  <input
-                    type="text"
-                    className="form-control"
-                    placeholder="Price"
-                  />
-                </div>
-                <button
-                  className="btn btn-danger"
-                  onClick={() => {
-                    console.log("Final Selected Services:", selectedServices);
-                  }}
-                >
-                  SUBMIT ORDER
-                </button>
+
+                <form onSubmit={handleAdditionalRequest}>
+                  <div className="mb-3">
+                    <textarea
+                      ref={descriptionDom}
+                      type="text"
+                      className="form-control"
+                      rows="4"
+                      placeholder="Service description"
+                    ></textarea>
+                  </div>
+                  <div className="mb-3">
+                    <input
+                      ref={priceDom}
+                      type="text"
+                      className="form-control"
+                      placeholder="Price"
+                    />
+                  </div>
+                  <button
+                    className="btn btn-danger"
+                    onClick={() => {
+                      console.log("Final Selected Services:", selectedServices);
+                    }}
+                    type="submit"
+                  >
+                    SUBMIT ORDER
+                  </button>
+                </form>
               </div>
             </div>
           </div>

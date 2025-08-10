@@ -1,151 +1,230 @@
 import axios from "../../../utils/axios";
 import { useEffect, useState } from "react";
 import { getAuth } from "../../../utils/auth";
+import { useLocation } from "react-router-dom";
+import { format } from "date-fns";
 
 function OrderDetail() {
-  const [customer, setCustomer] = useState({});
-  const [vehicle, setVehicle] = useState({});
-  // const [services, setServices] = useState([]);
+  const location = useLocation();
+  const {
+    selectedServices = [],
+    additionalRequest = "",
+  } = location.state || {};
+
+  const [customers, setCustomers] = useState([]);
+  const [vehicles, setVehicles] = useState([]);
+  const [orders, setOrders] = useState([]);
+  const [estimatedCompletion, setEstimatedCompletion] = useState(null);
+  const [orderStatus, setOrderStatus] = useState(0);
 
   const auth = getAuth();
-  const loggedUser = auth?.token || "no token"
+  const token = auth?.token || "";
 
-  // get customer information
+  // Fetch customers
   useEffect(() => {
-     async function fetchingData() {
-       const response = await axios.get("/customers",{
-        headers : {
-          Authorization: `Bearer ${loggedUser}`,
-        }
-       })
-       setCustomer(response.data.msg);
-       console.log(response.data);
-     }
-     fetchingData()
-  }, []);
+    async function fetchCustomers() {
+      try {
+        const res = await axios.get("/customers", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setCustomers(res.data.msg || []);
+      } catch (err) {
+        console.error("Failed to fetch customers:", err);
+      }
+    }
+    fetchCustomers();
+  }, [token]);
 
-    // get customer information
+  // Fetch vehicles
   useEffect(() => {
-     async function fetchingVehicle() {
-       const response = await axios.get("/vehicles",{
-        headers : {
-          Authorization: `Bearer ${loggedUser}`,
+    async function fetchVehicles() {
+      try {
+        const res = await axios.get("/vehicles", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setVehicles(res.data.message || []);
+      } catch (err) {
+        console.error("Failed to fetch vehicles:", err);
+      }
+    }
+    fetchVehicles();
+  }, [token]);
+
+  // Fetch orders and set estimated completion
+  useEffect(() => {
+    async function fetchOrders() {
+      try {
+        const res = await axios.get("/orders", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const ordersData = res.data.msg || [];
+        setOrders(ordersData);
+
+        if (ordersData.length > 0) {
+          // Example estimated completion date: 5 days after order date
+          const orderDate = new Date(ordersData[0].order_date.replace(" ", "T"));
+          const completionDate = new Date(orderDate);
+          completionDate.setDate(orderDate.getDate() + 5);
+          setEstimatedCompletion(completionDate.toLocaleDateString());
+
+          setOrderStatus(ordersData[0].order_status || 0);
         }
-       })
-       setVehicle(response.data.message);
-       console.log(response.data);
-     }
-     fetchingVehicle()
-  }, []);
+      } catch (err) {
+        console.error("Failed to fetch orders:", err);
+      }
+    }
+    fetchOrders();
+  }, [token]);
+
+  const steps = ["Received", "In Progress", "Quality Check", "Ready for Pickup"];
+
+  const getCircleColor = (idx) => {
+    switch (idx) {
+      case 0:
+        return "bg-light";
+      case 1:
+        return "bg-warning";
+      case 2:
+        return "bg-secondary";
+      case 3:
+        return "bg-success";
+      default:
+        return "bg-secondary";
+    }
+  };
+
+  const getTextColor = (idx) => {
+    if (idx === orderStatus) return "text-dark fw-semibold";
+    if (idx < orderStatus) return "text-warning fw-semibold";
+    if (idx === 2) return "text-secondary fw-semibold";
+    if (idx === 3) return "text-success fw-semibold";
+    return "text-secondary";
+  };
+
+  const customer = customers[0] || {};
+  const vehicle = vehicles[0] || {};
+  const order = orders[0] || {};
+
   return (
-    <>
-      <div className="container  mt-3 p-4 rounded">
-        <div className="d-flex justify-content-between align-items-center mb-3">
-          <h4>
-            <strong>{customer[0]?.customer_first_name} {customer[0]?.customer_last_name}</strong>
-          </h4>
-          <span className="badge bg-warning text-dark px-3 py-2">In progress</span>
-        </div>
-        <p className="text-muted">
-          You can track the progress of your order using this page. We will
-          constantly update this page to let you know how we are progressing. As
-          soon as we are done with the order, the status will turn green. That
-          means, your car is ready for pickup.
-        </p>
-
-        <div className="row my-4">
-          <div className="col-md-6 mb-3">
-            <div className="bg-light p-3 rounded shadow-sm section-border">
-              <h6 className="text-muted">CUSTOMER</h6>
-             <div className="mx-2">
-               <h6 className="mb-1">
-                <strong>Name: {customer[0]?.customer_first_name} {customer[0]?.customer_last_name}</strong>
-              </h6>
-              <h6 className="mb-4">
-                 <h6  className="mb-1"> Email:  {customer[0]?.customer_email}</h6>
-                 <h6> Phone Num: {customer[0]?.customer_phone_number}</h6>
-              </h6>
-             </div>
-
-            </div>
-          </div>
-          <div className="col-md-6 mb-3">
-            <div className="bg-light p-3 rounded shadow-sm section-border">
-              <small className="text-muted">CAR IN SERVICE</small>
-             <div className="mx-2">
-               <h5 className="mb-1">
-                 <i style={{marginRight : "6px"}} className="fa fa-car "></i>
-                 <>{`${vehicle[0]?.vehicle_make} ${" "}`}({`${" "}${vehicle[0]?.vehicle_color} ${" "}`})</>
-              </h5>
-              <h6 className="mb-1">Vehicle type: {vehicle[0]?.vehicle_type}</h6>
-              <h6 className="mb-1">Vehicle serial: {vehicle[0]?.vehicle_serial}</h6>
-              <h6 className="mb-0">Vehicle tag: {vehicle[0]?.vehicle_tag}</h6>
-             </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-light p-4 rounded shadow-sm">
-          <h6 className="mb-4">
-            <h4>Requested service</h4>
-          </h6>
-
-          <div className="border-bottom border-2 pb-3 mb-3">
-            <div className="d-flex justify-content-between">
-              <strong>Tire repairs and changes</strong>
-              <span className="btn btn-warning btn-sm py-1 px-2 rounded-pill">In progress</span>
-
-            </div>
-            <p className="text-muted small mb-0">
-              Without good, inflated tires, you lose speed, control, and fuel
-              efficiency...
-            </p>
-          </div>
-
-          <div className="border-bottom border-2 pb-3 mb-3">
-            <div className="d-flex justify-content-between">
-              <strong>Brake work</strong>
-              <span className="btn btn-warning btn-sm py-1 px-2 rounded-pill">In progress</span>
-
-            </div>
-            <p className="text-muted small mb-0">
-              Brake work is important, especially because one quarter of all
-              Canadian car...
-            </p>
-          </div>
-
-          <div className="border-bottom border-2 pb-3 mb-3">
-            <div className="d-flex justify-content-between">
-              <strong>Spark Plug replacement</strong>
-              <span className="btn btn-warning btn-sm py-1 px-2 rounded-pill">In progress</span>
-
-            </div>
-            <p className="text-muted small mb-0">
-              Spark plugs are a small part that can cause huge problems...
-            </p>
-          </div>
-
-          <div className="border-bottom border-2 pb-3 mb-3">
-            <div className="d-flex justify-content-between">
-              <strong>Brake work</strong>
-              <span className="btn btn-warning btn-sm py-1 px-2 rounded-pill">In progress</span>
-
-            </div>
-            <p className="text-muted small mb-0">
-              Brake work is important, especially because one quarter of all
-              Canadian car...
-            </p>
-          </div>
-
-          <div className="d-flex justify-content-between">
-            <strong>Additional request</strong>
-            <span className="btn btn-warning btn-sm py-1 px-2  rounded-pill">In progress</span>
-
-          </div>
-          <p className="text-muted small mb-0">Additional</p>
-        </div>
+    <div className="container my-5">
+      <header className="mb-4 ">
+       <div className="card bg-light p-2 mb-1" style={{ maxWidth: 'fit-content', borderRadius: '8px' }}>
+        <h5 className="mb-0 d-flex align-items-center">
+          <i className="fa fa-info-circle me-2 p-2 text-primary"></i>
+          Order Details for <div className="text-danger p-2">{ customer[0] ? `${" "}${ customer[0].customer_first_name} ${customer[0].customer_last_name}` : "Amir Mubarek"}</div>
+        </h5>
       </div>
-    </>
+
+        <strong className="text-muted">Track your order progress and details below.</strong>
+      </header>
+
+      {/* Order Status Timeline */}
+      <section className="mb-5">
+        <h5 className="mb-3 text-center">Order Progress</h5>
+        <div className="d-flex justify-content-between align-items-center position-relative">
+          {steps.map((step, idx) => (
+            <div key={step} className="text-center flex-fill position-relative">
+              <div
+                className={`mx-auto mb-2 rounded-circle ${getCircleColor(idx)}`}
+                style={{ width: 24, height: 24, zIndex: 2 }}
+              />
+              <small className={getTextColor(idx)}>{step}</small>
+              {idx < steps.length - 1 && (
+                <div
+                  className={`position-absolute top-50 start-100 translate-middle-y ${idx < orderStatus ? "bg-success" : "bg-secondary"}`}
+                  style={{ width: "100%", height: 4, zIndex: 1 }}
+                />
+              )}
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <div className="row gx-4">
+        {/* Left column: Customer & Vehicle Info */}
+        <aside className="col-lg-5 mb-4">
+          <section className="card shadow-sm rounded">
+            <header className="card-header bg-danger text-white fw-bold d-flex align-items-center">
+              <i className="fa fa-user me-2"></i> Customer Info
+            </header>
+            <div className="card-body">
+              <p><strong>Name:</strong> {customer.customer_first_name ? `${customer.customer_first_name} ${customer.customer_last_name}` : "-"}</p>
+              <p><strong>Email:</strong> {customer.customer_email || "-"}</p>
+              <p><strong>Phone:</strong> {customer.customer_phone_number || "-"}</p>
+              <hr />
+              <p>
+                <strong>Order Date:</strong>{" "}
+                {order.order_date
+                  ? format(new Date(order.order_date.replace(" ", "T")), "dd/MM/yyyy")
+                  : "Loading..."}
+              </p>
+              <p><strong>Estimated Completion:</strong> {estimatedCompletion || "-"}</p>
+            </div>
+          </section>
+
+          <section className="card shadow-sm rounded mt-4">
+            <header className="card-header bg-danger text-white fw-bold d-flex align-items-center">
+              <i className="fa fa-car me-2"></i> Vehicle Info
+            </header>
+            <div className="card-body">
+              <p><strong>Make:</strong> {vehicle.vehicle_make || "-"}</p>
+              <p><strong>Model:</strong> {vehicle.vehicle_type || "-"}</p>
+              <p><strong>Color:</strong> {vehicle.vehicle_color || "-"}</p>
+              <p><strong>Year:</strong> {vehicle.vehicle_year || "-"}</p>
+              <p><strong>Serial:</strong> {vehicle.vehicle_serial || "-"}</p>
+              <p><strong>Tag:</strong> {vehicle.vehicle_tag || "-"}</p>
+            </div>
+          </section>
+        </aside>
+
+        {/* Right column: Services & Additional Requests */}
+        <main className="col-lg-7">
+          <section className="card shadow-sm rounded">
+            <header className="card-header bg-danger text-white fw-bold d-flex align-items-center">
+              <i className="fa fa-cogs me-2"></i> Services Requested
+            </header>
+            <div className="card-body">
+              {selectedServices.length === 0 ? (
+                <p className="text-muted fst-italic">No services selected.</p>
+              ) : (
+                selectedServices.map(({ service_id, service_name, service_description }) => (
+                  <div key={service_id} className="border-bottom border-secondary pb-3 mb-3">
+                    <div className="d-flex justify-content-between align-items-center">
+                      <p className="mb-1 fw-bolder">{service_name}</p>
+                      <span className="badge p-2 my-1 border bg-warning text-dark">In progress</span>
+                    </div>
+                    <p className="text-muted small mb-0">{service_description}</p>
+                  </div>
+                ))
+              )}
+
+              {additionalRequest && (
+                <div className="d-flex justify-content-between align-items-center mt-3">
+                  <div>
+                    <h6 className="fw-semibold">Additional Request</h6>
+                    <p className="text-muted">{additionalRequest}</p>
+                  </div>
+                  <span className="badge p-2 my-1 border bg-warning text-dark">In progress</span>
+                </div>
+              )}
+            </div>
+          </section>
+
+          <section className="card shadow-sm rounded mt-4">
+            <header className="card-header bg-danger text-white fw-bold d-flex align-items-center">
+              <i className="fa fa-file-invoice-dollar me-2"></i> Order Summary
+            </header>
+            <div className="card-body">
+              <p><strong>Total Services:</strong> {selectedServices.length}</p>
+              <hr />
+              <p className="fs-5 fw-bold">
+                Total: ${order.order_total_price || "0.00"}
+              </p>
+            </div>
+          </section>
+        </main>
+      </div>
+    </div>
   );
 }
 
