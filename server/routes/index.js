@@ -53,9 +53,14 @@ router.use(deleteCustomer)
 const addVehicle = require("./Vehicle.route");
 router.use(addVehicle)
 
-// add services 
+// add services route
 const Services = require("./services.route");
 router.use(Services)
+
+
+// orders route
+const orders = require("./order.route");
+router.use(orders)
 
 
 module.exports = router;

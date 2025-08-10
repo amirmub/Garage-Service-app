@@ -132,14 +132,14 @@ function Services() {
           <Sidebar />
         </div>
 
-        <div className="col-md-9 col-lg-10 px-5 py-4">
+        <div className="col-md-9 col-lg-10 px-5  py-4">
           <div className="container my-3">
             <h3 className="mb-2">Services we provide</h3>
             <small>
               We offer a wide range of professional services tailored to meet your unique needs.
             </small>
 
-            <div className="list-group mb-5 mt-3">
+            <div className="list-group shadow-sm mb-5 mt-3">
               {loading ? (
                 <div className="my-5" style={{ display: "flex", justifyContent: "center" }}>
                   <ClipLoader color="#f00" loading={loading} size={30} />
@@ -150,7 +150,7 @@ function Services() {
                 services.map((service) => (
                   <div
                     key={service.service_id}
-                    className="list-group-item d-flex justify-content-between align-items-start p-3"
+                    className="list-group-item py-4 px-4 d-flex justify-content-between align-items-start"
                   >
                     <div className="col-12 col-md-9">
                       {editRow === service.service_id ? (
@@ -169,7 +169,7 @@ function Services() {
                         </>
                       ) : (
                         <>
-                          <h6>{service.service_name}</h6>
+                          <div style={{fontSize : "18px", fontWeight : "bold",marginBottom : "4px"}}>{service.service_name}</div>
                           <small style={{ display: "block", whiteSpace: "pre-wrap" }}>
                             {service.service_description}
                           </small>
@@ -218,13 +218,14 @@ function Services() {
                 ))
               )}
             </div>
-
-            <h5 className="mb-3">Add a new service</h5>
+    
+          <div className="p-3" style={{boxShadow: "0px 0px 6px rgba(0, 0, 0, 0.1)"}}>
+          <h5 className="mb-3">Add a new service</h5>
             <form onSubmit={handleSubmit}>
               <div className="mb-3">
                 <input ref={nameDom} type="text" className="form-control" placeholder="Service name" />
               </div>
-              <div className="mb-3">
+              <div className="my-3">
                 <textarea
                   ref={descriptionDom}
                   className="form-control"
@@ -236,6 +237,8 @@ function Services() {
                 Add Service
               </button>
             </form>
+          </div>
+
           </div>
         </div>
       </div>

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Sidebar from "../.../../../../components/Sidebar/Sidebar";
 import { getAuth } from "../../../utils/auth";
 import axios from "../../../utils/axios";
@@ -7,6 +7,8 @@ function AddOrder() {
   const [orderData, setOrderData] = useState({});
   const [vehicleData, setVehicleData] = useState({});
   const [servicesData, setServicesData] = useState([]);
+  const [selectedServices, setSelectedServices] = useState([]); // store selected IDs
+  const servicesDom = useRef({});
 
   const auth = getAuth();
   const loggedUser = auth?.token || "no token";
@@ -19,7 +21,6 @@ function AddOrder() {
           headers: { Authorization: `Bearer ${loggedUser}` },
         });
         setOrderData(response.data.msg);
-        console.log("Order data fetched successfully:", response.data);
       } catch (error) {
         console.error("Error fetching order data:", error);
       }
@@ -35,14 +36,12 @@ function AddOrder() {
           headers: { Authorization: `Bearer ${loggedUser}` },
         });
         setVehicleData(response.data.message);
-        console.log("Vehicle data fetched successfully:", response.data);
       } catch (error) {
         console.error("Error fetching vehicle data:", error);
       }
     }
     fetchVehicleData();
   }, []);
-
 
   // to get services data
   useEffect(() => {
@@ -52,14 +51,26 @@ function AddOrder() {
           headers: { Authorization: `Bearer ${loggedUser}` },
         });
         setServicesData(response.data.data);
-        console.log("Services data fetched successfully:", response.data);
       } catch (error) {
         console.error("Error fetching services data:", error);
       }
     }
     fetchServicesData();
   }, []);
+  
+   // Handle checkbox click
+  const handleServiceSelect = (serviceId, checked) => {
+    setSelectedServices((prev) => {
+      if (checked) {
+        return [...prev, serviceId]; // add if checked
+      } else {
+        return prev.filter((id) => id !== serviceId); // remove if unchecked
+      }
+    });
+  };
 
+  console.log("Selected Services IDs:", selectedServices);
+  
   return (
     <>
       <div className="container-fluid">
@@ -70,7 +81,6 @@ function AddOrder() {
           <div className="col-md-9 col-lg-10 p-5">
             <div className="d-flex align-items-center mb-2">
               <h3 className="text-primary fw-bold me-1">Create a new order</h3>
-              {/* <div className="border-bottom border-danger" style={{ width: '40px' }}></div> */}
             </div>
 
             {/* CUSTOMER INFO CARD */}
@@ -89,12 +99,7 @@ function AddOrder() {
                     <strong>Phone Number: </strong>{" "}
                     {orderData[0]?.customer_phone_number}
                   </p>
-                  {/* <p className="mb-1"><strong>Active Customer:</strong> Yes</p>
-                  <a href="#" className="text-danger text-decoration-none">
-                    Edit customer info <i className="bi bi-pencil-square"></i>
-                  </a> */}
                 </div>
-                {/* <button className="btn btn-link text-danger fs-4 p-0">✖</button> */}
               </div>
             </div>
 
@@ -103,7 +108,7 @@ function AddOrder() {
               <div className="card-body d-flex justify-content-between">
                 <div>
                   <h5 className="fw-bold">
-                    <i className="fa text-danger  fa-car mx-1"></i>{" "}
+                    <i className="fa text-danger fa-car mx-1"></i>{" "}
                     {vehicleData[0]?.vehicle_make}
                   </h5>
                   <p className="mb-1">
@@ -125,11 +130,7 @@ function AddOrder() {
                     <strong>Vehicle type:</strong>{" "}
                     {vehicleData[0]?.vehicle_type}
                   </p>
-                  {/* <a href="#" className="text-danger text-decoration-none">
-                    Edit vehicle info <i className="bi bi-pencil-square"></i>
-                  </a> */}
                 </div>
-                {/* <button className="btn btn-link text-danger fs-4 p-0">✖</button> */}
               </div>
             </div>
 
@@ -137,32 +138,37 @@ function AddOrder() {
             <div className="card mb-4">
               <div className="card-body">
                 <h5 className="fw-bold text-primary mx-2 mb-3">Choose service</h5>
-               {
-                servicesData.map((service) => (
-                <div
-                  className="form-check mb-3 border-bottom pb-2 d-flex justify-content-between align-items-start"
-                  key={service.service_id}
-                >
-                  <label
-                    style={{ cursor: "pointer" }}
-                    className="form-check-label px-1 mb-0"
-                    htmlFor={service.service_id}
-                  >
-                    <strong>{service.service_name}</strong>
-                    <br />
-                    <small>{service.service_description}</small>
-                  </label>
+                <div>
+                  {servicesData.map((service) => (
+                    <div
+                      className="form-check mb-3 border-bottom pb-2 d-flex justify-content-between align-items-start"
+                      key={service.service_id}
+                    >
+                      <label
+                        ref={(el) => {
+                          if (el) servicesDom.current[service.service_id] = el;
+                        }}
+                        style={{ cursor: "pointer" }}
+                        className="form-check-label px-1 mb-0"
+                        htmlFor={service.service_id}
+                      >
+                        <strong>{service.service_name}</strong>
+                        <br />
+                        <small>{service.service_description}</small>
+                      </label>
 
-                  <input
-                    className="form-check-input mt-3 mx-3 p-2"
-                    style={{ cursor: "pointer" }}
-                    type="checkbox"
-                    id={service.service_id}
-                  />
+                      <input
+                        className="form-check-input mt-3 mx-3 p-2"
+                        style={{ cursor: "pointer" }}
+                        type="checkbox"
+                        id={service.service_id}
+                        onChange={(e) =>
+                          handleServiceSelect(service.service_id, e.target.checked)
+                        }
+                      />
+                    </div>
+                  ))}
                 </div>
-
-                ))}
-
               </div>
             </div>
 
@@ -171,10 +177,6 @@ function AddOrder() {
               <div className="card-body">
                 <h5 className="fw-bold text-primary mb-3 d-flex align-items-center">
                   Additional requests
-                  {/* <div
-                    className="border-bottom border-danger ms-2 flex-grow-1"
-                    style={{ maxWidth: "40px" }}
-                  ></div> */}
                 </h5>
                 <div className="mb-3">
                   <textarea
@@ -190,7 +192,14 @@ function AddOrder() {
                     placeholder="Price"
                   />
                 </div>
-                <button className="btn btn-danger">SUBMIT ORDER</button>
+                <button
+                  className="btn btn-danger"
+                  onClick={() => {
+                    console.log("Final Selected Services:", selectedServices);
+                  }}
+                >
+                  SUBMIT ORDER
+                </button>
               </div>
             </div>
           </div>

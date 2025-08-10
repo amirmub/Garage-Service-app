@@ -87,7 +87,7 @@ function OrderDetail() {
 
         <div className="bg-light p-4 rounded shadow-sm">
           <h6 className="mb-4">
-            <h5>Requested service</h5>
+            <h4>Requested service</h4>
           </h6>
 
           <div className="border-bottom border-2 pb-3 mb-3">
@@ -139,7 +139,7 @@ function OrderDetail() {
 
           <div className="d-flex justify-content-between">
             <strong>Additional request</strong>
-            <span className="btn btn-warning btn-sm py-1 px-2 rounded-pill">In progress</span>
+            <span className="btn btn-warning btn-sm py-1 px-2  rounded-pill">In progress</span>
 
           </div>
           <p className="text-muted small mb-0">Additional</p>
