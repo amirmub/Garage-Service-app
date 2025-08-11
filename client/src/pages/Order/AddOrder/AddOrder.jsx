@@ -92,11 +92,14 @@ function AddOrder() {
         {
           additional_request: descriptionValue,
           order_total_price: priceValue,
+          order_services: selectedServices.map(service => ({ service_id: service.service_id })),
         },
         {
           headers: { Authorization: `Bearer ${loggedUser}` },
         }
       );
+      console.log(response.data);
+      
 
       setTimeout(() => {
         navigate("/order-detail", {

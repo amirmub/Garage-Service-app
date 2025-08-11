@@ -2,10 +2,10 @@ const db = require("../config/db.config");
 const crypto = require("crypto");
 
 async function addOrder(orderData) {
-  const { order_total_price, additional_request } = orderData;
+  const { order_total_price, additional_request, order_services } = orderData;
 
-  if (!order_total_price || !additional_request) {
-    return { error: "Please fill all required fields.", status: 400 };
+  if (!order_total_price || !order_services || !Array.isArray(order_services) || order_services.length === 0) {
+    return { error: "Please fill all required fields and provide at least one service.", status: 400 };
   }
 
   try {
@@ -18,7 +18,7 @@ async function addOrder(orderData) {
     }
     const employee_id = employee[0].employee_id;
 
-    //  Get the most recent customer_id
+    // Get the most recent customer_id
     const customer = await db.query(
       "SELECT customer_id FROM customer_identifier ORDER BY customer_id DESC LIMIT 1"
     );
@@ -37,13 +37,12 @@ async function addOrder(orderData) {
     }
     const vehicle_id = vehicle[0].vehicle_id;
 
-
     // Generate a unique hash for this order
-        const order_hash = crypto
-        .createHash("sha256")
-        .update(`${Date.now()}-${employee_id}-${customer_id}-${vehicle_id}`)
-        .digest("hex")
-        .slice(0, 24);
+    const order_hash = crypto
+      .createHash("sha256")
+      .update(`${Date.now()}-${employee_id}-${customer_id}-${vehicle_id}`)
+      .digest("hex")
+      .slice(0, 24);
 
     // Insert into orders with hash
     const orderResult = await db.query(
@@ -63,30 +62,67 @@ async function addOrder(orderData) {
       [order_id, order_total_price, additional_request]
     );
 
+    // Insert multiple order_services rows in one query
+    const placeholders = order_services.map(() => "(?, ?)").join(", ");
+    const values = [];
+    order_services.forEach(({ service_id }) => {
+      values.push(order_id, service_id);
+    });
+
+    await db.query(
+      `INSERT INTO order_services (order_id, service_id) VALUES ${placeholders}`,
+      values
+    );
+
     return { message: "Order added successfully", order_id, status: 201 };
 
   } catch (error) {
-    console.error("Add Order Error:", error.message);
+    console.error("Add Order Error:", error);
     return { error: "Internal Server Error", status: 500 };
   }
 }
 
-// get a  order 
 async function getOrder() {
   try {
-      const result = `SELECT * 
-          FROM orders
-          INNER JOIN order_info
-          ON  orders.order_id = order_info.order_id
-          ORDER BY orders.order_id DESC;
-          `;
-      const rows = await db.query(result);
-      return { message: rows, status: 200 };
-  
-    } catch (error) {
-      console.error("Add Customer Error:", error.message);
-      return { error: "Internal Server Error", status: 500 };
-    }  
+    const result = `
+      SELECT 
+        orders.order_id,
+        orders.*,
+        order_info.*,
+        JSON_ARRAYAGG(
+          JSON_OBJECT(
+            'service_id', common_services.service_id,
+            'service_name', common_services.service_name,
+            'service_description', common_services.service_description
+          )
+        ) AS services
+      FROM orders
+      INNER JOIN order_info 
+        ON orders.order_id = order_info.order_id
+      INNER JOIN order_services 
+        ON orders.order_id = order_services.order_id
+      INNER JOIN common_services
+        ON order_services.service_id = common_services.service_id
+      GROUP BY orders.order_id
+      ORDER BY orders.order_id DESC;
+    `;
+
+    const rows = await db.query(result);
+
+    // Parse the JSON array string into JS array
+   const formattedRows = rows.map(row => ({
+  ...row,
+  services: typeof row.services === "string" ? JSON.parse(row.services) : row.services || []
+}));
+
+
+    return { message: formattedRows, status: 200 };
+
+  } catch (error) {
+    console.error("Get Order Error:", error);
+    return { error: "Internal Server Error", status: 500 };
+  }
 }
+
 
 module.exports = { addOrder, getOrder };
