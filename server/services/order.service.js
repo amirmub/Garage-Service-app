@@ -124,5 +124,52 @@ async function getOrder() {
   }
 }
 
+// function to get single order
+async function singleOrder(order_hash) {
+  if (!order_hash) {
+    return { error: "Order hash is required", status: 400 };
+  }
 
-module.exports = { addOrder, getOrder };
+  try {
+    const query = `
+      SELECT 
+        orders.order_id,
+        orders.*,
+        order_info.*,
+        JSON_ARRAYAGG(
+          JSON_OBJECT(
+            'service_id', common_services.service_id,
+            'service_name', common_services.service_name,
+            'service_description', common_services.service_description
+          )
+        ) AS services
+      FROM orders
+      INNER JOIN order_info 
+        ON orders.order_id = order_info.order_id
+      INNER JOIN order_services 
+        ON orders.order_id = order_services.order_id
+      INNER JOIN common_services
+        ON order_services.service_id = common_services.service_id
+      WHERE orders.order_hash = ?
+      GROUP BY orders.order_id;
+    `;
+
+    const rows = await db.query(query, [order_hash]);
+
+    if (!rows || rows.length === 0) {
+      return { error: "Order not found", status: 404 };
+    }
+
+    const order = rows[0];
+    order.services = typeof order.services === "string" ? JSON.parse(order.services) : order.services || [];
+
+    return { message: order, status: 200 };
+
+  } catch (error) {
+    console.error("Single Order Error:", error);
+    return { error: "Internal Server Error", status: 500 };
+  }
+}
+
+
+module.exports = { addOrder, getOrder, singleOrder };
