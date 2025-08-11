@@ -12,6 +12,6 @@ router.post("/api/order",[authMiddleware.tokenVerify,authMiddleware.isAdmin],ord
 router.get("/api/orders",[authMiddleware.tokenVerify,authMiddleware.isAdmin],orderController.getOrder);
 
 // get single order route
-router.get("/api/order/:id",[authMiddleware.tokenVerify,authMiddleware.isAdmin],orderController.singleOrder);
+router.get("/api/order/:id",orderController.singleOrder);
 
 module.exports = router

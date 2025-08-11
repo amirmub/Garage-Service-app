@@ -145,7 +145,7 @@ function AddOrder() {
                     <strong>Email: </strong> {orderData[0]?.customer_email}
                   </p>
                   <p className="mb-1">
-                    <strong>Phone Number: </strong> {orderData[0]?.customer_phone_number}
+                    <strong>Phone: </strong> {orderData[0]?.customer_phone_number}
                   </p>
                 </div>
               </div>

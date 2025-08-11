@@ -15,6 +15,7 @@ import Vehicle from "./pages/Vehicle/Vehicle";
 import AddOrder from "./pages/Order/AddOrder/AddOrder";
 import Services from "./pages/Services/Services";
 import OrderDetail from "./pages/Order/OrderDetail/OrderDetail";
+import SingleOrderPage from "./pages/Order/SingleOrderPage/SingleOrderPage";
 
 function App() {
   return (
@@ -25,6 +26,7 @@ function App() {
         <Route path="/" element={<Home />}></Route>
         <Route path="/login" element={<Login />}></Route>
         <Route path="/unAuthorized" element={<UnAuthorized />}></Route>
+        <Route path="/order/:orderHash" element={<SingleOrderPage />} />
 
         {/* all authenticated user access*/}
          <Route

@@ -1,6 +1,7 @@
 const db = require("../config/db.config");
 const crypto = require("crypto");
 
+
 async function addOrder(orderData) {
   const { order_total_price, additional_request, order_services } = orderData;
 
@@ -133,9 +134,11 @@ async function singleOrder(order_hash) {
   try {
     const query = `
       SELECT 
-        orders.order_id,
         orders.*,
         order_info.*,
+        customer_info.*,
+        customer_identifier.*,
+        customer_vehicle_info.*,
         JSON_ARRAYAGG(
           JSON_OBJECT(
             'service_id', common_services.service_id,
@@ -146,6 +149,12 @@ async function singleOrder(order_hash) {
       FROM orders
       INNER JOIN order_info 
         ON orders.order_id = order_info.order_id
+      LEFT JOIN customer_info 
+        ON orders.customer_id = customer_info.customer_id
+      LEFT JOIN customer_identifier 
+        ON orders.customer_id = customer_identifier.customer_id
+      LEFT JOIN customer_vehicle_info 
+        ON orders.customer_id = customer_vehicle_info.customer_id
       INNER JOIN order_services 
         ON orders.order_id = order_services.order_id
       INNER JOIN common_services
@@ -161,7 +170,9 @@ async function singleOrder(order_hash) {
     }
 
     const order = rows[0];
-    order.services = typeof order.services === "string" ? JSON.parse(order.services) : order.services || [];
+    order.services = typeof order.services === "string" 
+      ? JSON.parse(order.services) 
+      : order.services || [];
 
     return { message: order, status: 200 };
 
@@ -170,6 +181,7 @@ async function singleOrder(order_hash) {
     return { error: "Internal Server Error", status: 500 };
   }
 }
+
 
 
 module.exports = { addOrder, getOrder, singleOrder };
