@@ -1,6 +1,6 @@
 import "./App.css";
 import { useEffect } from "react";
-import { Route, Routes } from "react-router-dom";
+import { Link, Route, Routes } from "react-router-dom";
 import AOS from "aos";
 import "aos/dist/aos.css"; // AOS styles
 
@@ -25,6 +25,7 @@ import About from "./pages/About/About";
 import ServicePage from "./pages/ServicePage/ServicePage";
 import Contact from "./pages/Contact/Contact";
 import NotFound from "./pages/404/404";
+import BackToTop from "./components/BackToTop/BackToTop";
 
 function App() {
   useEffect(() => {
@@ -122,6 +123,7 @@ function App() {
         />
       </Routes>
       <Footer />
+       <BackToTop />
     </>
   );
 }

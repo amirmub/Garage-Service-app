@@ -60,7 +60,7 @@ function About() {
           </div>
           <div
             className="col-md-6 text-center"
-            data-aos="fade-in"
+            data-aos="fade-out"
             data-aos-delay="200"
           >
             <img
