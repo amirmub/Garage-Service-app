@@ -94,7 +94,7 @@ function SingleOrderPage() {
   };
 
   if (loading) return <div style={{margin : "150px auto"}} className=" d-flex justify-content-center align-items-center "><ClipLoader size={50} color="#B8101F"  /></div>
-  if (error) return <p className="text-danger">{error}</p>;
+  if (error) return <h3 style={{margin : "150px auto"}}  className="text-danger d-flex justify-content-center align-items-center ">{error}</h3>;
   if (!order) return <p>No order data available.</p>;
 
   const services = order.services || [];
