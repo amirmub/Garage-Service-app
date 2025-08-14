@@ -45,17 +45,9 @@ function Footer() {
         <div className="container">
             <div className="copyright">
                 <div className="row">
-                    <div className="col-md-6 text-center text-md-start mb-3 mb-md-0">
+                    <div className="col-12 text-center mb-3 ">
                         &copy; 2025 <Link className="" href="#">Amir_Mub</Link>, All Right Reserved.
 
-                    </div>
-                    <div className="col-md-6 text-center text-md-end">
-                        <div className="footer-menu">
-                            <Link to="">Home</Link>
-                            <Link to="">Cookies</Link>
-                            <Link to="">Help</Link>
-                            <Link to="">FQAs</Link>
-                        </div>
                     </div>
                 </div>
             </div>

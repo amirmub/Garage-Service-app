@@ -16,6 +16,7 @@ import AddOrder from "./pages/Order/AddOrder/AddOrder";
 import Services from "./pages/Services/Services";
 import OrderDetail from "./pages/Order/OrderDetail/OrderDetail";
 import SingleOrderPage from "./pages/Order/SingleOrderPage/SingleOrderPage";
+import About from "./pages/About/About";
 
 
 
@@ -26,6 +27,7 @@ function App() {
       <Header />
       <Routes>
         <Route path="/" element={<Home />}></Route>
+        <Route path="/about" element={<About />}></Route>
         <Route path="/login" element={<Login />}></Route>
         <Route path="/unAuthorized" element={<UnAuthorized />}></Route>
         <Route path="/order/:orderHash" element={<SingleOrderPage />} />
