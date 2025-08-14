@@ -17,6 +17,7 @@ import Services from "./pages/Services/Services";
 import OrderDetail from "./pages/Order/OrderDetail/OrderDetail";
 import SingleOrderPage from "./pages/Order/SingleOrderPage/SingleOrderPage";
 import About from "./pages/About/About";
+import ServicePage from "./pages/ServicePage/ServicePage";
 
 
 
@@ -28,6 +29,7 @@ function App() {
       <Routes>
         <Route path="/" element={<Home />}></Route>
         <Route path="/about" element={<About />}></Route>
+        <Route path="/services" element={<ServicePage />}></Route>
         <Route path="/login" element={<Login />}></Route>
         <Route path="/unAuthorized" element={<UnAuthorized />}></Route>
         <Route path="/order/:orderHash" element={<SingleOrderPage />} />
