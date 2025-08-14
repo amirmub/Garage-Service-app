@@ -45,9 +45,8 @@ function Footer() {
         <div className="container">
             <div className="copyright">
                 <div className="row">
-                    <div className="col-12 text-center mb-3 ">
+                    <div className="col-12 text-center mb-0 ">
                         &copy; 2025 <Link className="" href="#">Amir_Mub</Link>, All Right Reserved.
-
                     </div>
                 </div>
             </div>

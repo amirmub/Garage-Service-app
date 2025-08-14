@@ -1,46 +1,66 @@
-import { Link } from 'react-router-dom'
+import { Link } from "react-router-dom";
+import { useEffect } from "react";
+import AOS from "aos";
+import "aos/dist/aos.css";
 
 function Services() {
+  useEffect(() => {
+    AOS.init({ duration: 1000, once: true });
+  }, []);
+
+  const serviceItems = [
+    {
+      icon: "fa-certificate",
+      title: "Quality Servicing",
+      desc: "Reliable maintenance & repairs you can count on.",
+      delay: 100,
+    },
+    {
+      icon: "fa-users-cog",
+      title: "Expert Workers",
+      desc: "Highly trained technicians dedicated to your car’s care.",
+      delay: 300,
+    },
+    {
+      icon: "fa-tools",
+      title: "Modern Equipment",
+      desc: "Advanced tools for precise, efficient service.",
+      delay: 500,
+    },
+  ];
+
   return (
-    <div>
-          <div class="container-xxl py-5">
-        <div class="container">
-            <div class="row g-4">
-                <div class="col-lg-4 col-md-6 wow fadeInUp" data-wow-delay="0.1s">
-                    <div class="d-flex bg-light py-5 px-4">
-                        <i class="fa fa-certificate fa-3x text-primary flex-shrink-0"></i>
-                        <div class="ps-4">
-                            <h5 class="mb-3">Quality Servicing</h5>
-                            <p>Reliable maintenance & repairs you can count on.</p>
-                            <Link class="text-secondary border-bottom" href="">Read More</Link>
-                        </div>
-                    </div>
+    <div className="container-xxl py-5">
+      <div className="container">
+        <div className="row g-4">
+          {serviceItems.map((service, index) => (
+            <div
+              key={index}
+              className="col-lg-4 col-md-6"
+              data-aos="fade-up"
+              data-aos-delay={service.delay}
+            >
+              <div className="d-flex bg-light py-5 px-4 rounded shadow-sm h-100">
+                <i
+                  className={`fa ${service.icon} fa-3x text-primary flex-shrink-0`}
+                ></i>
+                <div className="ps-4">
+                  <h5 className="mb-3">{service.title}</h5>
+                  <p>{service.desc}</p>
+                  <Link
+                    className="text-secondary border-bottom"
+                    to="#"
+                  >
+                    Read More
+                  </Link>
                 </div>
-                <div class="col-lg-4 col-md-6 wow fadeInUp" data-wow-delay="0.3s">
-                    <div class="d-flex bg-light py-5 px-4">
-                        <i class="fa fa-users-cog fa-3x text-primary flex-shrink-0"></i>
-                        <div class="ps-4">
-                            <h5 class="mb-3">Expert Workers</h5>
-                            <p>Highly trained technicians dedicated to your car’s care.</p>
-                            <Link class="text-secondary border-bottom" href="">Read More</Link>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-lg-4 col-md-6 wow fadeInUp" data-wow-delay="0.5s">
-                    <div class="d-flex bg-light py-5 px-4">
-                        <i class="fa fa-tools fa-3x text-primary flex-shrink-0"></i>
-                        <div class="ps-4">
-                            <h5 class="mb-3">Modern Equipment</h5>
-                            <p>Advanced tools for precise, efficient service.</p>
-                            <Link class="text-secondary border-bottom" href="">Read More</Link>
-                        </div>
-                    </div>
-                </div>
+              </div>
             </div>
+          ))}
         </div>
+      </div>
     </div>
-    </div>
-  )
+  );
 }
 
-export default Services
+export default Services;

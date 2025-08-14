@@ -1,5 +1,10 @@
 import "./App.css";
+import { useEffect } from "react";
 import { Route, Routes } from "react-router-dom";
+import AOS from "aos";
+import "aos/dist/aos.css"; // AOS styles
+
+// Pages & Components
 import Home from "./pages/Home/Home";
 import Login from "./pages/Login/Login";
 import AddEmployee from "./pages/Admin/AddEmployee/AddEmployee";
@@ -20,9 +25,15 @@ import About from "./pages/About/About";
 import ServicePage from "./pages/ServicePage/ServicePage";
 import Contact from "./pages/Contact/Contact";
 
-
-
 function App() {
+  useEffect(() => {
+    AOS.init({
+      duration: 800, // animation speed
+      once: false, // allow animation every time you scroll up/down
+      mirror: true, // animate again when scrolling back
+    });
+  }, []);
+
   return (
     <>
       <TopHeader />
@@ -36,17 +47,15 @@ function App() {
         <Route path="/unAuthorized" element={<UnAuthorized />}></Route>
         <Route path="/order/:orderHash" element={<SingleOrderPage />} />
 
-        {/* all authenticated user access*/}
-         <Route
+        <Route
           path="/order-detail"
           element={
             <PrivateRoute role={[3]}>
               <OrderDetail />
             </PrivateRoute>
           }
-        ></Route>
+        />
 
-        {/* authenticated and also authorization for only admin*/}
         <Route
           path="/add-employee"
           element={
@@ -54,16 +63,16 @@ function App() {
               <AddEmployee />
             </PrivateRoute>
           }
-        ></Route>
-        
-         <Route
+        />
+
+        <Route
           path="/admin/employee"
           element={
             <PrivateRoute role={[3]}>
               <Employee />
             </PrivateRoute>
           }
-        ></Route>
+        />
 
         <Route
           path="/admin/services"
@@ -72,45 +81,43 @@ function App() {
               <Services />
             </PrivateRoute>
           }
-        ></Route>
+        />
 
-
-        {/* authorized for role 2 and 3 */}
         <Route
           path="/add-customer"
           element={
-            <PrivateRoute role={[2,3]}>
+            <PrivateRoute role={[2, 3]}>
               <AddCustomer />
             </PrivateRoute>
           }
-        ></Route>
+        />
 
         <Route
           path="/customers"
           element={
-            <PrivateRoute role={[2,3]}>
+            <PrivateRoute role={[2, 3]}>
               <Customers />
             </PrivateRoute>
           }
-        ></Route>
+        />
 
         <Route
           path="/add-vehicle"
           element={
-            <PrivateRoute role={[2,3]}>
+            <PrivateRoute role={[2, 3]}>
               <Vehicle />
             </PrivateRoute>
           }
-        ></Route>
-        
-          <Route
-            path="/add-order"
-            element={
-              <PrivateRoute role={[2,3]}>
-                <AddOrder />
-              </PrivateRoute>
-            }
-          ></Route>
+        />
+
+        <Route
+          path="/add-order"
+          element={
+            <PrivateRoute role={[2, 3]}>
+              <AddOrder />
+            </PrivateRoute>
+          }
+        />
       </Routes>
       <Footer />
     </>
