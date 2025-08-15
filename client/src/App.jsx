@@ -26,6 +26,8 @@ import ServicePage from "./pages/ServicePage/ServicePage";
 import Contact from "./pages/Contact/Contact";
 import NotFound from "./pages/404/404";
 import BackToTop from "./components/BackToTop/BackToTop";
+import AllOrders from "./pages/Order/AllOrders/AllOrders"
+import Dashboard from "./pages/Dashboard/Dashboard";
 
 function App() {
   useEffect(() => {
@@ -45,20 +47,24 @@ function App() {
         <Route path="/about" element={<About />}></Route>
         <Route path="/services" element={<ServicePage />}></Route>
         <Route path="/contact" element={<Contact />}></Route>
-        <Route path="*" element={<NotFound />}></Route>
         <Route path="/login" element={<Login />}></Route>
+        <Route path="*" element={<NotFound />}></Route>
         <Route path="/unAuthorized" element={<UnAuthorized />}></Route>
+
+        {/* for all */}
         <Route path="/order/:orderHash" element={<SingleOrderPage />} />
 
+       {/* for all  */}
         <Route
           path="/order-detail"
           element={
-            <PrivateRoute role={[3]}>
+            <PrivateRoute role={[1,2, 3]}>
               <OrderDetail />
             </PrivateRoute>
           }
         />
 
+      {/* for admin only  */}
         <Route
           path="/add-employee"
           element={
@@ -86,6 +92,15 @@ function App() {
           }
         />
 
+        <Route
+          path="/dashboard"
+          element={
+            <PrivateRoute role={[3]}>
+              <Dashboard />
+            </PrivateRoute>
+          }
+        />
+      {/* for manager and admin */}
         <Route
           path="/add-customer"
           element={
@@ -118,6 +133,15 @@ function App() {
           element={
             <PrivateRoute role={[2, 3]}>
               <AddOrder />
+            </PrivateRoute>
+          }
+        />
+
+        <Route
+          path="/all-orders"
+          element={
+            <PrivateRoute role={[2, 3]}>
+              <AllOrders />
             </PrivateRoute>
           }
         />

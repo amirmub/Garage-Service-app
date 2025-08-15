@@ -2,12 +2,12 @@ import { useRef } from "react";
 import Sidebar from "../../../components/Sidebar/Sidebar";
 import axios from "../../../utils/axios";
 import { useNavigate } from "react-router-dom";
-import { useState } from "react";
 import { getAuth } from "../../../utils/auth";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 function AddEmployee() {
   const navigate = useNavigate();
-  const [error, setError] = useState("");
 
   const fNameDom = useRef();
   const lNameDom = useRef();
@@ -16,10 +16,8 @@ function AddEmployee() {
   const phoneDom = useRef();
   const roleDom = useRef();
 
-  // to pass the token to backend
   const auth = getAuth();
   const loginEmployee = auth?.token || "no token";
-  console.log(loginEmployee);
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -44,19 +42,27 @@ function AddEmployee() {
           active_employee: activeValue,
           company_role_id: roleValue,
         },
-        // to pass using header to backend
         {
           headers: {
             Authorization: `Bearer ${loginEmployee}`,
-          }
+          },
         }
       );
 
-      console.log(result.data);
+      toast.success("Employee added successfully!");
+
+      setTimeout(() => {
       navigate("/admin/employee");
+      }, 2000);
+
     } catch (error) {
-      console.log(error.response?.data.msg);
-      setError(error.response?.data.msg);
+      const errorMsg = error.response?.data.msg || "Something went wrong!";
+      setTimeout(() => {
+        toast.error(errorMsg, {
+        position: "top-right",
+      });
+      }, 100);
+      console.log(errorMsg);
     }
   }
 
@@ -74,7 +80,7 @@ function AddEmployee() {
               <input
                 ref={fNameDom}
                 type="text"
-                className="form-control "
+                className="form-control"
                 placeholder="First name"
               />
             </div>
@@ -110,7 +116,7 @@ function AddEmployee() {
                 placeholder="+251-9999999"
               />
             </div>
-            <div className="mb-1">
+            <div className="mb-3">
               <select ref={roleDom} className="form-control">
                 <option value="">Select role</option>
                 <option value="1">Employee</option>
@@ -118,23 +124,15 @@ function AddEmployee() {
                 <option value="3">Admin</option>
               </select>
             </div>
-            <small
-              style={{
-                color: "red",
-                fontSize: "14px",
-                paddingBottom: "3px",
-                margin: "10px 0px 10px 200px",
-              }}
-            >
-              {error}
-            </small>
-            <br />
             <button type="submit" className="btn btn-danger px-4 py-2">
               ADD Employee
             </button>
           </form>
         </div>
       </div>
+
+      {/* ToastContainer renders toast notifications */}
+      <ToastContainer />
     </div>
   );
 }

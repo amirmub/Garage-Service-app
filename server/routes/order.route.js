@@ -14,4 +14,7 @@ router.get("/api/orders",[authMiddleware.tokenVerify,authMiddleware.isAdmin],ord
 // get single order route
 router.get("/api/order/:id",orderController.singleOrder);
 
+// Update order route
+router.put("/api/order/:id",[authMiddleware.tokenVerify,authMiddleware.isAdmin],orderController.updateOrder);
+
 module.exports = router

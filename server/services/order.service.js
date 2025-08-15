@@ -5,12 +5,19 @@ const crypto = require("crypto");
 async function addOrder(orderData) {
   const { order_total_price, additional_request, order_services } = orderData;
 
-  if (!order_total_price || !order_services || !Array.isArray(order_services) || order_services.length === 0) {
+  if (
+    !order_total_price ||
+    !order_services ||
+    !Array.isArray(order_services) ||
+    order_services.length === 0
+  ) {
     return { error: "Please fill all required fields and provide at least one service.", status: 400 };
   }
 
+
+
   try {
-    // Get the most recent employee_id
+    // Get most recent employee_id
     const employee = await db.query(
       "SELECT employee_id FROM employee ORDER BY employee_id DESC LIMIT 1"
     );
@@ -19,7 +26,7 @@ async function addOrder(orderData) {
     }
     const employee_id = employee[0].employee_id;
 
-    // Get the most recent customer_id
+    // Get most recent customer_id
     const customer = await db.query(
       "SELECT customer_id FROM customer_identifier ORDER BY customer_id DESC LIMIT 1"
     );
@@ -28,7 +35,7 @@ async function addOrder(orderData) {
     }
     const customer_id = customer[0].customer_id;
 
-    // Get the most recent vehicle_id for that customer
+    // Get most recent vehicle_id
     const vehicle = await db.query(
       "SELECT vehicle_id FROM customer_vehicle_info WHERE customer_id = ? ORDER BY vehicle_id DESC LIMIT 1",
       [customer_id]
@@ -38,14 +45,14 @@ async function addOrder(orderData) {
     }
     const vehicle_id = vehicle[0].vehicle_id;
 
-    // Generate a unique hash for this order
+    // Generate unique hash
     const order_hash = crypto
       .createHash("sha256")
       .update(`${Date.now()}-${employee_id}-${customer_id}-${vehicle_id}`)
       .digest("hex")
       .slice(0, 24);
 
-    // Insert into orders with hash
+    // Insert into orders
     const orderResult = await db.query(
       "INSERT INTO orders (employee_id, customer_id, vehicle_id, order_hash) VALUES (?, ?, ?, ?)",
       [employee_id, customer_id, vehicle_id, order_hash]
@@ -63,19 +70,27 @@ async function addOrder(orderData) {
       [order_id, order_total_price, additional_request]
     );
 
-    // Insert multiple order_services rows in one query
-    const placeholders = order_services.map(() => "(?, ?)").join(", ");
+     const allowedStatuses = ["Received", "In Progress", "Quality Check", "Ready for Pickup"];
+     const defaultServiceStatus = "Received"; // default for service_completed
+
+    // Insert into order_services with default service_completed = "Received"
+    const placeholders = order_services.map(() => "(?, ?, ?)").join(", ");
     const values = [];
     order_services.forEach(({ service_id }) => {
-      values.push(order_id, service_id);
+      values.push(order_id, service_id, defaultServiceStatus);
     });
 
     await db.query(
-      `INSERT INTO order_services (order_id, service_id) VALUES ${placeholders}`,
+      `INSERT INTO order_services (order_id, service_id, service_completed) VALUES ${placeholders}`,
       values
     );
 
-    return { message: "Order added successfully", order_id, status: 201 };
+    return {
+      message: "Order added successfully",
+      order_id,
+      allowed_statuses: allowedStatuses,
+      status: 201
+    };
 
   } catch (error) {
     console.error("Add Order Error:", error);
@@ -83,30 +98,34 @@ async function addOrder(orderData) {
   }
 }
 
+
+
 async function getOrder() {
   try {
-    const result = `
-      SELECT 
-        orders.order_id,
-        orders.*,
-        order_info.*,
-        JSON_ARRAYAGG(
-          JSON_OBJECT(
-            'service_id', common_services.service_id,
-            'service_name', common_services.service_name,
-            'service_description', common_services.service_description
-          )
-        ) AS services
-      FROM orders
-      INNER JOIN order_info 
-        ON orders.order_id = order_info.order_id
-      INNER JOIN order_services 
-        ON orders.order_id = order_services.order_id
-      INNER JOIN common_services
-        ON order_services.service_id = common_services.service_id
-      GROUP BY orders.order_id
-      ORDER BY orders.order_id DESC;
-    `;
+const result = `
+  SELECT 
+    orders.order_id,
+    orders.*,
+    order_info.*,
+    JSON_ARRAYAGG(
+      JSON_OBJECT(
+        'service_id', common_services.service_id,
+        'service_name', common_services.service_name,
+        'service_description', common_services.service_description,
+        'service_completed', order_services.service_completed
+      )
+    ) AS services
+  FROM orders
+  INNER JOIN order_info 
+    ON orders.order_id = order_info.order_id
+  INNER JOIN order_services 
+    ON orders.order_id = order_services.order_id
+  INNER JOIN common_services
+    ON order_services.service_id = common_services.service_id
+  GROUP BY orders.order_id
+  ORDER BY orders.order_id DESC;
+`;
+
 
     const rows = await db.query(result);
 
@@ -133,35 +152,37 @@ async function singleOrder(order_hash) {
 
   try {
     const query = `
-      SELECT 
-        orders.*,
-        order_info.*,
-        customer_info.*,
-        customer_identifier.*,
-        customer_vehicle_info.*,
-        JSON_ARRAYAGG(
-          JSON_OBJECT(
-            'service_id', common_services.service_id,
-            'service_name', common_services.service_name,
-            'service_description', common_services.service_description
-          )
-        ) AS services
-      FROM orders
-      INNER JOIN order_info 
-        ON orders.order_id = order_info.order_id
-      LEFT JOIN customer_info 
-        ON orders.customer_id = customer_info.customer_id
-      LEFT JOIN customer_identifier 
-        ON orders.customer_id = customer_identifier.customer_id
-      LEFT JOIN customer_vehicle_info 
-        ON orders.customer_id = customer_vehicle_info.customer_id
-      INNER JOIN order_services 
-        ON orders.order_id = order_services.order_id
-      INNER JOIN common_services
-        ON order_services.service_id = common_services.service_id
-      WHERE orders.order_hash = ?
-      GROUP BY orders.order_id;
-    `;
+    SELECT 
+      orders.*,
+      order_info.*,
+      customer_info.*,
+      customer_identifier.*,
+      customer_vehicle_info.*,
+      JSON_ARRAYAGG(
+        JSON_OBJECT(
+          'service_id', common_services.service_id,
+          'service_name', common_services.service_name,
+          'service_description', common_services.service_description,
+          'service_completed', order_services.service_completed
+        )
+      ) AS services
+    FROM orders
+    INNER JOIN order_info 
+      ON orders.order_id = order_info.order_id
+    LEFT JOIN customer_info 
+      ON orders.customer_id = customer_info.customer_id
+    LEFT JOIN customer_identifier 
+      ON orders.customer_id = customer_identifier.customer_id
+    LEFT JOIN customer_vehicle_info 
+      ON orders.customer_id = customer_vehicle_info.customer_id
+    INNER JOIN order_services 
+      ON orders.order_id = order_services.order_id
+    INNER JOIN common_services
+      ON order_services.service_id = common_services.service_id
+    WHERE orders.order_hash = ?
+    GROUP BY orders.order_id;
+  `;
+
 
     const rows = await db.query(query, [order_hash]);
 
@@ -183,5 +204,11 @@ async function singleOrder(order_hash) {
 }
 
 
+// function to update order
+async function updateOrder(orderData,updatedOrder) {
 
-module.exports = { addOrder, getOrder, singleOrder };
+  
+}
+
+
+module.exports = { addOrder, getOrder, singleOrder,updateOrder };

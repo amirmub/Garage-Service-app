@@ -75,6 +75,7 @@ function MainServices() {
                 <p><i className="fa fa-check text-success me-3"></i>Expert Workers</p>
                 <p><i className="fa fa-check text-success me-3"></i>Affordable Pricing</p>
                 <p><i className="fa fa-check text-success me-3"></i>Customer Satisfaction</p>
+                <p><i className="fa fa-check text-success me-3"></i>24/7 Customer Support</p>
               </div>
 
         </div>

@@ -2,7 +2,7 @@ import axios from "../../../utils/axios";
 import { useEffect, useState } from "react";
 import { format } from "date-fns";
 import { useParams } from "react-router-dom";
-import {ClipLoader} from"react-spinners"
+import { ClipLoader } from "react-spinners";
 
 function SingleOrderPage() {
   const { orderHash } = useParams();
@@ -14,14 +14,13 @@ function SingleOrderPage() {
   const [estimatedCompletion, setEstimatedCompletion] = useState(null);
   const [orderStatus, setOrderStatus] = useState(0);
 
+  const steps = ["Received", "In Progress", "Quality Check", "Ready for Pickup"];
 
   useEffect(() => {
     async function fetchOrder() {
       try {
         setLoading(true);
-        const res = await axios.get(`/order/${orderHash}`, {
-        });
-
+        const res = await axios.get(`/order/${orderHash}`);
         const orderData = res.data.msg;
 
         if (!orderData) {
@@ -64,37 +63,63 @@ function SingleOrderPage() {
       }
     }
 
+    fetchOrder();
+  }, [orderHash]);
 
-      fetchOrder();
-  }, []);
-
-  const steps = ["Received", "In Progress", "Quality Check", "Ready for Pickup"];
-
-  const getCircleColor = (idx) => {
-    switch (idx) {
-      case 0:
-        return "bg-light";
-      case 1:
-        return "bg-warning";
-      case 2:
-        return "bg-secondary";
-      case 3:
-        return "bg-success";
-      default:
-        return "bg-secondary";
+  // Timeline: constant colors
+  const getCircleColor = (stepIdx) => {
+    switch (steps[stepIdx]) {
+      case "Received": return "bg-dark";
+      case "In Progress": return "bg-warning";
+      case "Quality Check": return "bg-info";
+      case "Ready for Pickup": return "bg-success";
+      default: return "bg-secondary";
     }
   };
 
-  const getTextColor = (idx) => {
-    if (idx === orderStatus) return "text-dark fw-semibold";
-    if (idx < orderStatus) return "text-warning fw-semibold";
-    if (idx === 2) return "text-secondary fw-semibold";
-    if (idx === 3) return "text-success fw-semibold";
-    return "text-secondary";
+  const getTextColor = (stepIdx) => {
+    if (stepIdx === orderStatus) return "text-dark fw-semibold";
+    if (stepIdx < orderStatus) return "text-success fw-semibold";
+    switch (steps[stepIdx]) {
+      case "Quality Check": return "text-info fw-semibold";
+      case "Received": return "text-secondary fw-semibold";
+      case "In Progress": return "text-warning fw-semibold";
+      case "Ready for Pickup": return "text-success fw-semibold";
+      default: return "text-secondary";
+    }
   };
 
-  if (loading) return <div style={{margin : "150px auto"}} className=" d-flex justify-content-center align-items-center "><ClipLoader size={50} color="#B8101F"  /></div>
-  if (error) return <h3 style={{margin : "150px auto"}}  className="text-danger d-flex justify-content-center align-items-center ">{error}</h3>;
+  // Services Requested: dynamic badge color based on service_completed
+  const getServiceBadgeColor = (status) => {
+    switch (status) {
+      case "Received": return "bg-dark text-white";
+      case "In Progress": return "bg-warning text-dark";
+      case "Quality Check": return "bg-info text-dark";
+      case "Completed": return "bg-success text-white";
+      default: return "bg-secondary text-white";
+    }
+  };
+
+  if (loading)
+    return (
+      <div
+        style={{ margin: "150px auto" }}
+        className="d-flex justify-content-center align-items-center"
+      >
+        <ClipLoader size={50} color="#B8101F" />
+      </div>
+    );
+
+  if (error)
+    return (
+      <h3
+        style={{ margin: "150px auto" }}
+        className="text-danger d-flex justify-content-center align-items-center"
+      >
+        {error}
+      </h3>
+    );
+
   if (!order) return <p>No order data available.</p>;
 
   const services = order.services || [];
@@ -171,7 +196,7 @@ function SingleOrderPage() {
                 <strong>Order Date:</strong>{" "}
                 {order.order_date
                   ? format(new Date(order.order_date), "dd/MM/yyyy")
-                  : "Loading..."}
+                  : "-"}
               </p>
               <p>
                 <strong>Estimated Completion:</strong>{" "}
@@ -217,20 +242,33 @@ function SingleOrderPage() {
               {services.length === 0 ? (
                 <p className="text-muted fst-italic">No services selected.</p>
               ) : (
-                services.map(({ service_id, service_name, service_description }) => (
-                  <div
-                    key={service_id}
-                    className="border-bottom border-secondary pb-3 mb-3"
-                  >
-                    <div className="d-flex justify-content-between align-items-center">
-                      <p className="mb-1 fw-bolder">{service_name}</p>
-                      <span className="badge p-2 my-1 border bg-warning text-dark">
-                        In progress
-                      </span>
+                services.map(
+                  ({
+                    service_id,
+                    service_name,
+                    service_description,
+                    service_completed,
+                  }) => (
+                    <div
+                      key={service_id}
+                      className="border-bottom border-secondary pb-3 mb-3"
+                    >
+                      <div className="d-flex justify-content-between align-items-center">
+                        <p className="mb-1 fw-bolder">{service_name}</p>
+                        <span
+                          className={`badge p-2 my-1 border ${getServiceBadgeColor(
+                            service_completed
+                          )}`}
+                        >
+                          {service_completed || "Received"}
+                        </span>
+                      </div>
+                      <p className="text-muted small mb-0">
+                        {service_description}
+                      </p>
                     </div>
-                    <p className="text-muted small mb-0">{service_description}</p>
-                  </div>
-                ))
+                  )
+                )
               )}
 
               {additionalRequest && (

@@ -119,7 +119,7 @@ CREATE TABLE IF NOT EXISTS `order_services` (
   `order_service_id` int(11) NOT NULL AUTO_INCREMENT,
   `order_id` int(11) NOT NULL,
   `service_id` int(11) NOT NULL,
-  `service_completed` int(11) NOT NULL,
+  `service_completed` TEXT,
   PRIMARY KEY (order_service_id),
   FOREIGN KEY (order_id) REFERENCES orders(order_id),
   FOREIGN KEY (service_id) REFERENCES common_services(service_id)
@@ -127,15 +127,17 @@ CREATE TABLE IF NOT EXISTS `order_services` (
 
 CREATE TABLE IF NOT EXISTS `order_status` (
   `order_status_id` int(11) NOT NULL AUTO_INCREMENT,
-  `order_id` int(11) NOT NULL,
-  `order_status` int(11) NOT NULL,
-  PRIMARY KEY (order_status_id),
-  FOREIGN KEY (order_id) REFERENCES orders(order_id)
+  `order_status` TEXT,
+  PRIMARY KEY (order_status_id)
 ) ENGINE=InnoDB;
 
 -- Add the roles to the database         below this to check if the tables are created correctly
 INSERT INTO company_roles (company_role_name)
 VALUES ('Employee'), ('Manager'), ('Admin');
+
+-- Add the roles to the database         below this to check if the tables are created correctly
+INSERT INTO order_status (order_status)
+VALUES ('Received'), ('In Progress'), ('Quality Check'), ('Ready for Pickup');
 
 -- -- Create admin employee account
 -- INSERT INTO employee (employee_email, active_employee, added_date)

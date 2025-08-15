@@ -52,6 +52,12 @@ function Header() {
             <Link to="/contact" className="nav-item nav-link">
               Contact
             </Link>
+              {isLogin && (
+              <Link to="/dashboard" className="nav-item nav-link">
+                Admin
+              </Link>
+            )}
+
           </div>
           {isLogin ? (
             <div onClick={logOut}>

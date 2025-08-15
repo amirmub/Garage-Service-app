@@ -8,8 +8,8 @@ function Sidebar() {
                 <h6 className="text-uppercase text-light">Admin Menu</h6>
             </div>
             <nav className="nav flex-column">
-                <Link className="nav-link" to="#">Dashboard</Link>
-                <Link className="nav-link" to="/order">Orders</Link>
+                <Link className="nav-link" to="/dashboard">Dashboard</Link>
+                <Link className="nav-link" to="/all-orders">Orders</Link>
                 {/* <Link className="nav-link" to="/add-order">New order</Link> */}
                 <Link className="nav-link" to="/add-employee">Add employee</Link>
                 <Link className="nav-link" to="/admin/employee">Employees</Link>
