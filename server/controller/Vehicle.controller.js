@@ -20,7 +20,7 @@ async function getAllVehicles(req, res, next) {
      if (result.error) {
         return res.status(result.status).json({ error: result.error });
     }
-    return res.status(result.status).json({ message: result.message });
+    return res.status(result.status).json({ msg: result.message });
 }
 
 

@@ -1,8 +1,8 @@
 import axios from "../../../utils/axios";
 import { useEffect, useState } from "react";
-import { format } from "date-fns";
 import { useParams } from "react-router-dom";
 import { ClipLoader } from "react-spinners";
+import { format } from "date-fns";
 
 function SingleOrderPage() {
   const { orderHash } = useParams();
@@ -66,56 +66,48 @@ function SingleOrderPage() {
     fetchOrder();
   }, [orderHash]);
 
-  // Timeline: constant colors
-  const getCircleColor = (stepIdx) => {
-    switch (steps[stepIdx]) {
-      case "Received": return "bg-dark";
-      case "In Progress": return "bg-warning";
-      case "Quality Check": return "bg-info";
-      case "Ready for Pickup": return "bg-success";
-      default: return "bg-secondary";
+  const getCircleColor = (step) => {
+    switch (step) {
+      case "Received": return "#343a40"; // dark
+      case "In Progress": return "#ffc107"; // warning
+      case "Quality Check": return "#999"; // NEW inline
+      case "Ready for Pickup": return "#28a745"; // success
+      default: return "#6c757d"; // secondary
     }
   };
 
-  const getTextColor = (stepIdx) => {
-    if (stepIdx === orderStatus) return "text-dark fw-semibold";
-    if (stepIdx < orderStatus) return "text-success fw-semibold";
-    switch (steps[stepIdx]) {
-      case "Quality Check": return "text-info fw-semibold";
-      case "Received": return "text-secondary fw-semibold";
-      case "In Progress": return "text-warning fw-semibold";
-      case "Ready for Pickup": return "text-success fw-semibold";
-      default: return "text-secondary";
+  const getTextColor = (step, idx) => {
+    if (idx === orderStatus) return "#343a40";
+    if (idx < orderStatus) return "#28a745";
+    switch (step) {
+      case "Received": return "#6c757d";
+      case "In Progress": return "#ffc107";
+      case "Quality Check": return "#999"; // NEW inline
+      case "Ready for Pickup": return "#28a745";
+      default: return "#6c757d";
     }
   };
 
-  // Services Requested: dynamic badge color based on service_completed
-  const getServiceBadgeColor = (status) => {
+  const getServiceBadgeStyle = (status) => {
     switch (status) {
-      case "Received": return "bg-dark text-white";
-      case "In Progress": return "bg-warning text-dark";
-      case "Quality Check": return "bg-info text-dark";
-      case "Completed": return "bg-success text-white";
-      default: return "bg-secondary text-white";
+      case "Received": return { backgroundColor: "#343a40", color: "#fff" };
+      case "In Progress": return { backgroundColor: "#ffc107", color: "#343a40" };
+      case "Quality Check": return { backgroundColor: "#999", color: "#fff" }; // NEW inline
+      case "Ready for Pickup": return { backgroundColor: "#28a745", color: "#fff" };
+      default: return { backgroundColor: "#6c757d", color: "#fff" };
     }
   };
 
   if (loading)
     return (
-      <div
-        style={{ margin: "150px auto" }}
-        className="d-flex justify-content-center align-items-center"
-      >
+      <div style={{ margin: "150px auto" }} className="d-flex justify-content-center align-items-center">
         <ClipLoader size={50} color="#B8101F" />
       </div>
     );
 
   if (error)
     return (
-      <h3
-        style={{ margin: "150px auto" }}
-        className="text-danger d-flex justify-content-center align-items-center"
-      >
+      <h3 style={{ margin: "150px auto" }} className="text-danger d-flex justify-content-center align-items-center">
         {error}
       </h3>
     );
@@ -128,42 +120,44 @@ function SingleOrderPage() {
   return (
     <div className="container mt-4 mb-5">
       <header className="mb-4">
-        <div
-          className="card bg-light p-2 mb-1"
-          style={{ maxWidth: "fit-content", borderRadius: "8px" }}
-        >
+        <div className="card" style={{ backgroundColor: "#f8f9fa", padding: "8px", borderRadius: "8px", maxWidth: "fit-content" }}>
           <h5 className="mb-0 d-flex align-items-center">
             <i className="fa fa-info-circle me-2 p-2 text-primary"></i>
             Order Details for{" "}
-            <div className="text-danger p-2">
-              {customer.customer_first_name
-                ? `${customer.customer_first_name} ${customer.customer_last_name}`
-                : "-"}
-            </div>
+            <div className="text-danger p-2">{customer.customer_first_name ? `${customer.customer_first_name} ${customer.customer_last_name}` : "-"}</div>
           </h5>
         </div>
-        <strong className="text-muted">
-          Track your order progress and details below.
-        </strong>
+        <strong className="text-muted">Track your order progress and details below.</strong>
       </header>
 
-      {/* Order Status Timeline */}
+      {/* Order Progress Timeline */}
       <section className="mb-5">
         <h5 className="mb-3 text-center">Order Progress</h5>
         <div className="d-flex justify-content-between align-items-center position-relative">
           {steps.map((step, idx) => (
             <div key={step} className="text-center flex-fill position-relative">
               <div
-                className={`mx-auto mb-2 rounded-circle ${getCircleColor(idx)}`}
-                style={{ width: 24, height: 24, zIndex: 2 }}
+                className="mx-auto mb-2 rounded-circle"
+                style={{
+                  width: 24,
+                  height: 24,
+                  zIndex: 2,
+                  backgroundColor: getCircleColor(step),
+                }}
               />
-              <small className={getTextColor(idx)}>{step}</small>
+              <small style={{ color: getTextColor(step, idx), fontWeight: step === "Quality Check" ? 600 : 500 }}>{step}</small>
               {idx < steps.length - 1 && (
                 <div
-                  className={`position-absolute top-50 start-100 translate-middle-y ${
-                    idx < orderStatus ? "bg-success" : "bg-secondary"
-                  }`}
-                  style={{ width: "100%", height: 4, zIndex: 1 }}
+                  style={{
+                    width: "100%",
+                    height: 4,
+                    backgroundColor: idx < orderStatus ? "#28a745" : "#6c757d",
+                    position: "absolute",
+                    top: "50%",
+                    left: "100%",
+                    transform: "translateY(-50%)",
+                    zIndex: 1,
+                  }}
                 />
               )}
             </div>
@@ -172,103 +166,56 @@ function SingleOrderPage() {
       </section>
 
       <div className="row gx-4">
-        {/* Left column: Customer & Vehicle Info */}
         <aside className="col-lg-5 mb-4">
           <section className="card shadow-sm rounded">
-            <header className="card-header bg-danger text-white fw-bold d-flex align-items-center">
+            <header className="card-header" style={{ backgroundColor: "#dc3545", color: "#fff", fontWeight: "bold" }}>
               <i className="fa fa-user me-2"></i> Customer Info
             </header>
             <div className="card-body">
-              <p>
-                <strong>Name:</strong>{" "}
-                {customer.customer_first_name
-                  ? `${customer.customer_first_name} ${customer.customer_last_name}`
-                  : "-"}
-              </p>
-              <p>
-                <strong>Email:</strong> {customer.customer_email || "-"}
-              </p>
-              <p>
-                <strong>Phone:</strong> {customer.customer_phone_number || "-"}
-              </p>
+              <p><strong>Name:</strong> {customer.customer_first_name ? `${customer.customer_first_name} ${customer.customer_last_name}` : "-"}</p>
+              <p><strong>Email:</strong> {customer.customer_email || "-"}</p>
+              <p><strong>Phone:</strong> {customer.customer_phone_number || "-"}</p>
               <hr />
-              <p>
-                <strong>Order Date:</strong>{" "}
-                {order.order_date
-                  ? format(new Date(order.order_date), "dd/MM/yyyy")
-                  : "-"}
-              </p>
-              <p>
-                <strong>Estimated Completion:</strong>{" "}
-                {estimatedCompletion || "-"}
-              </p>
+              <p><strong>Order Date:</strong> {order.order_date ? format(new Date(order.order_date), "dd/MM/yyyy") : "-"}</p>
+              <p><strong>Estimated Completion:</strong> {estimatedCompletion || "-"}</p>
             </div>
           </section>
 
           <section className="card shadow-sm rounded mt-4">
-            <header className="card-header bg-danger text-white fw-bold d-flex align-items-center">
+            <header className="card-header" style={{ backgroundColor: "#dc3545", color: "#fff", fontWeight: "bold" }}>
               <i className="fa fa-car me-2"></i> Vehicle Info
             </header>
             <div className="card-body">
-              <p>
-                <strong>Make:</strong> {vehicle.vehicle_make || "-"}
-              </p>
-              <p>
-                <strong>Model:</strong> {vehicle.vehicle_type || "-"}
-              </p>
-              <p>
-                <strong>Color:</strong> {vehicle.vehicle_color || "-"}
-              </p>
-              <p>
-                <strong>Year:</strong> {vehicle.vehicle_year || "-"}
-              </p>
-              <p>
-                <strong>Serial:</strong> {vehicle.vehicle_serial || "-"}
-              </p>
-              <p>
-                <strong>Tag:</strong> {vehicle.vehicle_tag || "-"}
-              </p>
+              <p><strong>Make:</strong> {vehicle.vehicle_make || "-"}</p>
+              <p><strong>Model:</strong> {vehicle.vehicle_type || "-"}</p>
+              <p><strong>Color:</strong> {vehicle.vehicle_color || "-"}</p>
+              <p><strong>Year:</strong> {vehicle.vehicle_year || "-"}</p>
+              <p><strong>Serial:</strong> {vehicle.vehicle_serial || "-"}</p>
+              <p><strong>Tag:</strong> {vehicle.vehicle_tag || "-"}</p>
             </div>
           </section>
         </aside>
 
-        {/* Right column: Services & Additional Requests */}
         <main className="col-lg-7">
           <section className="card shadow-sm rounded">
-            <header className="card-header bg-danger text-white fw-bold d-flex align-items-center">
+            <header className="card-header" style={{ backgroundColor: "#dc3545", color: "#fff", fontWeight: "bold" }}>
               <i className="fa fa-cogs me-2"></i> Services Requested
             </header>
             <div className="card-body">
               {services.length === 0 ? (
                 <p className="text-muted fst-italic">No services selected.</p>
               ) : (
-                services.map(
-                  ({
-                    service_id,
-                    service_name,
-                    service_description,
-                    service_completed,
-                  }) => (
-                    <div
-                      key={service_id}
-                      className="border-bottom border-secondary pb-3 mb-3"
-                    >
-                      <div className="d-flex justify-content-between align-items-center">
-                        <p className="mb-1 fw-bolder">{service_name}</p>
-                        <span
-                          className={`badge p-2 my-1 border ${getServiceBadgeColor(
-                            service_completed
-                          )}`}
-                        >
-                          {service_completed || "Received"}
-                        </span>
-                      </div>
-                      <p className="text-muted small mb-0">
-                        {service_description}
-                      </p>
+                services.map(({ service_id, service_name, service_description, service_completed }) => (
+                  <div key={service_id} style={{ borderBottom: "1px solid #6c757d", paddingBottom: "8px", marginBottom: "8px" }}>
+                    <div className="d-flex justify-content-between align-items-center">
+                      <p className="mb-1 fw-bolder">{service_name}</p>
+                      <span className="badge p-2 my-1 border" style={getServiceBadgeStyle(service_completed || "Received")}>
+                        {service_completed || "Received"}
+                      </span>
                     </div>
-                  )
-                )
+                    <p className="text-muted small mb-0">{service_description}</p>
+                  </div>
+                ))
               )}
 
               {additionalRequest && (
@@ -277,8 +224,8 @@ function SingleOrderPage() {
                     <h6 className="fw-semibold">Additional Request</h6>
                     <p className="text-muted">{additionalRequest}</p>
                   </div>
-                  <span className="badge p-2 my-1 border bg-warning text-dark">
-                    In progress
+                  <span className="badge p-2 my-1 border" style={getServiceBadgeStyle("Received")}>
+                    Received
                   </span>
                 </div>
               )}
@@ -286,17 +233,13 @@ function SingleOrderPage() {
           </section>
 
           <section className="card shadow-sm rounded mt-4">
-            <header className="card-header bg-danger text-white fw-bold d-flex align-items-center">
+            <header className="card-header" style={{ backgroundColor: "#dc3545", color: "#fff", fontWeight: "bold" }}>
               <i className="fa fa-file-invoice-dollar me-2"></i> Order Summary
             </header>
             <div className="card-body">
-              <p>
-                <strong>Total Services:</strong> {services.length}
-              </p>
+              <p><strong>Total Services:</strong> {services.length}</p>
               <hr />
-              <p className="fs-5 fw-bold">
-                Total: ${order.order_total_price || "0.00"}
-              </p>
+              <p className="fs-5 fw-bold">Total: ${order.order_total_price || "0.00"}</p>
             </div>
           </section>
         </main>

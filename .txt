@@ -1,159 +1,281 @@
--- Customers table
-CREATE TABLE IF NOT EXISTS `customer_identifier` (
-  `customer_id` int(11) NOT NULL AUTO_INCREMENT,
-  `customer_email` varchar(255) NOT NULL,
-  `customer_phone_number` varchar(255) NOT NULL,
-  `customer_added_date` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  `customer_hash` varchar(255) NOT NULL,
-  PRIMARY KEY (customer_id),
-  UNIQUE (customer_email)
-) ENGINE=InnoDB;
+import Sidebar from "../../../components/Sidebar/Sidebar";
+import { useState, useEffect } from "react";
+import axios from "../../../utils/axios";
+import { getAuth } from "../../../utils/auth";
+import { RingLoader } from "react-spinners";
+import { format } from "date-fns";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
-CREATE TABLE IF NOT EXISTS `customer_info` (
-  `customer_info_id` int(11) NOT NULL AUTO_INCREMENT,
-  `customer_id` int(11) NOT NULL, 
-  `customer_first_name` varchar(255) NOT NULL,
-  `customer_last_name` varchar(255) NOT NULL,
-  `active_customer_status` int(11) NOT NULL,
-  PRIMARY KEY (customer_info_id),
-  FOREIGN KEY (customer_id) REFERENCES customer_identifier(customer_id)
-) ENGINE=InnoDB;
+function AllOrders() {
+  const [orders, setOrders] = useState([]);
+  const [customers, setCustomers] = useState([]);
+  const [vehicles, setVehicles] = useState([]);
+  const [services, setServices] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [editOrder, setEditOrder] = useState(null);
+  const [updating, setUpdating] = useState(false);
 
-CREATE TABLE IF NOT EXISTS `customer_vehicle_info` (
-  `vehicle_id` int(11) NOT NULL AUTO_INCREMENT,
-  `customer_id` int(11) NOT NULL, 
-  `vehicle_year` int(11) NOT NULL,
-  `vehicle_make` varchar(255) NOT NULL,
-  `vehicle_model` varchar(255) NOT NULL,
-  `vehicle_type` varchar(255) NOT NULL,
-  `vehicle_mileage` int(11) NOT NULL, 
-  `vehicle_tag` varchar(255) NOT NULL,
-  `vehicle_serial` varchar(255) NOT NULL,
-  `vehicle_color` varchar(255) NOT NULL,
-  PRIMARY KEY (vehicle_id),
-  FOREIGN KEY (customer_id) REFERENCES customer_identifier(customer_id)
-) ENGINE=InnoDB;
+  const auth = getAuth();
+  const token = auth?.token || "";
 
--- Company tables 
-CREATE TABLE IF NOT EXISTS `company_roles` (
-  `company_role_id` int(11) NOT NULL AUTO_INCREMENT,
-  `company_role_name` varchar(255) NOT NULL,
-  PRIMARY KEY (company_role_id),
-  UNIQUE (company_role_name)
-) ENGINE=InnoDB;
+  const statusOptions = ["Received", "In Progress", "Quality Check", "Ready for Pickup"];
 
-CREATE TABLE IF NOT EXISTS `common_services` (
-  `service_id` int(11) NOT NULL AUTO_INCREMENT,
-  `service_name` varchar(255) NOT NULL,
-  `service_description` TEXT,
-  PRIMARY KEY (service_id)
-) ENGINE=InnoDB;
+  // Fetch all orders, customers, vehicles, services
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        const [ordersRes, customersRes, vehiclesRes, servicesRes] = await Promise.all([
+          axios.get("/orders", { headers: { Authorization: `Bearer ${token}` } }),
+          axios.get("/customers", { headers: { Authorization: `Bearer ${token}` } }),
+          axios.get("/vehicles", { headers: { Authorization: `Bearer ${token}` } }),
+          axios.get("/all-services", { headers: { Authorization: `Bearer ${token}` } }),
+        ]);
 
--- Employee tables 
-CREATE TABLE IF NOT EXISTS `employee` (
-  `employee_id` int(11) NOT NULL AUTO_INCREMENT,
-  `employee_email` varchar(255) NOT NULL,
-  `active_employee` int(11) NOT NULL,
-  `added_date` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  PRIMARY KEY (employee_id), 
-  UNIQUE (employee_email)
-) ENGINE=InnoDB;
+        const customersData = customersRes.data.msg || [];
+        const vehiclesData = vehiclesRes.data.msg || [];
+        const allServicesData = Array.isArray(servicesRes.data.data) ? servicesRes.data.data : [];
 
-CREATE TABLE IF NOT EXISTS `employee_info` (
-  `employee_info_id` int(11) NOT NULL AUTO_INCREMENT,
-  `employee_id` int(11) NOT NULL,
-  `employee_first_name` varchar(255) NOT NULL,
-  `employee_last_name` varchar(255) NOT NULL,
-  `employee_phone` varchar(255) NOT NULL,
-  PRIMARY KEY (employee_info_id),
-  FOREIGN KEY (employee_id) REFERENCES employee(employee_id)
-) ENGINE=InnoDB;
+        setCustomers(customersData);
+        setVehicles(vehiclesData);
+        setServices(allServicesData);
 
-CREATE TABLE IF NOT EXISTS `employee_pass` (
-  `employee_pass_id` int(11) NOT NULL AUTO_INCREMENT,
-  `employee_id` int(11) NOT NULL,
-  `employee_password_hashed` varchar(255) NOT NULL,
-  PRIMARY KEY (employee_pass_id),
-  FOREIGN KEY (employee_id) REFERENCES employee(employee_id)
-) ENGINE=InnoDB;
+        const ordersData = ordersRes.data.msg || [];
 
-CREATE TABLE IF NOT EXISTS `employee_role` (
-  `employee_role_id` int(11) NOT NULL AUTO_INCREMENT,
-  `employee_id` int(11) NOT NULL,
-  `company_role_id` int(11) NOT NULL,
-  PRIMARY KEY (employee_role_id),
-  FOREIGN KEY (employee_id) REFERENCES employee(employee_id),
-  FOREIGN KEY (company_role_id) REFERENCES company_roles(company_role_id)
-) ENGINE=InnoDB;
+        const mappedOrders = ordersData.map((o) => {
+          const customer = customersData.find((c) => c.customer_id === o.customer_id) || {};
+          const vehicle = vehiclesData.find((v) => v.vehicle_id === o.vehicle_id) || {};
 
--- Order tables  
-CREATE TABLE IF NOT EXISTS `orders` (
-  `order_id` int(11) NOT NULL AUTO_INCREMENT,
-  `employee_id` int(11) NOT NULL,
-  `customer_id` int(11) NOT NULL,
-  `vehicle_id` int(11) NOT NULL,
-  `order_date` DATETIME DEFAULT CURRENT_TIMESTAMP,
-  `active_order` int(11) NOT NULL,
-  `order_hash` varchar(255) NOT NULL,
-  PRIMARY KEY (order_id),
-  FOREIGN KEY (employee_id) REFERENCES employee(employee_id), 
-  FOREIGN KEY (customer_id) REFERENCES customer_identifier(customer_id),
-  FOREIGN KEY (vehicle_id) REFERENCES customer_vehicle_info(vehicle_id)
-) ENGINE=InnoDB;
+          const requestedServices = (o.services || []).map(
+            (s) => allServicesData.find((as) => as.service_id === s.service_id)?.service_name || "N/A"
+          );
 
-CREATE TABLE IF NOT EXISTS `order_info` (
-  `order_info_id` int(11) NOT NULL AUTO_INCREMENT,
-  `order_id` int(11) NOT NULL,
-  `order_total_price` int(11) NOT NULL,
-  `estimated_completion_date` DATETIME DEFAULT CURRENT_TIMESTAMP,
-  `completion_date` DATETIME,
-  `additional_request` TEXT,
-  `notes_for_internal_use` TEXT,
-  `notes_for_customer` TEXT,
-  `additional_requests_completed` int(11) NOT NULL,
-  PRIMARY KEY (order_info_id),
-  FOREIGN KEY (order_id) REFERENCES orders(order_id)
-) ENGINE=InnoDB;
+          return {
+            ...o,
+            order_hash: o.order_hash, // important for fetching single order
+            customer,
+            vehicle,
+            requestedServices,
+            services: o.services || [],
+            date: o.order_date ? format(new Date(o.order_date), "MM/dd/yyyy") : "-",
+            status: getOrderStatus(o.services),
+            statusColor: getStatusColor(getOrderStatus(o.services)),
+          };
+        });
 
-CREATE TABLE IF NOT EXISTS `order_status` (
-  `order_status_id` int(11) NOT NULL AUTO_INCREMENT,
-  `order_status` TEXT,
-  PRIMARY KEY (order_status_id)
-) ENGINE=InnoDB;
+        setOrders(mappedOrders);
+      } catch (err) {
+        console.error("Failed to load orders, customers, vehicles, or services:", err);
+        toast.error("Failed to load orders, customers, vehicles, or services");
+      } finally {
+        setLoading(false);
+      }
+    }
 
-CREATE TABLE IF NOT EXISTS `order_services` (
-  `order_service_id` int(11) NOT NULL AUTO_INCREMENT,
-  `order_id` int(11) NOT NULL,
-  `service_id` int(11) NOT NULL,
-  `order_status_id` int(11) NOT NULL,
-  `service_completed` int(11) NOT NULL,
-  PRIMARY KEY (order_service_id),
-  FOREIGN KEY (order_id) REFERENCES orders(order_id),
-  FOREIGN KEY (service_id) REFERENCES common_services(service_id),
-  FOREIGN KEY (order_status_id) REFERENCES order_status(order_status_id)
-) ENGINE=InnoDB;
+    fetchData();
+  }, [token]);
 
+  // Determine overall order status
+  const getOrderStatus = (services) => {
+    if (!services || services.length === 0) return "Received";
+    if (services.every((s) => s.service_completed === "Ready for Pickup")) return "Ready for Pickup";
+    return services[services.length - 1].service_completed || "Received";
+  };
 
--- Add the roles to the database         below this to check if the tables are created correctly
-INSERT INTO company_roles (company_role_name)
-VALUES ('Employee'), ('Manager'), ('Admin');
+  const getStatusColor = (status) => {
+    switch (status) {
+      case "Received": return "dark";
+      case "In Progress": return "warning";
+      case "Quality Check": return "info";
+      case "Ready for Pickup": return "success";
+      default: return "secondary";
+    }
+  };
 
--- Add the order status to the database
-INSERT INTO order_status (order_status)
-VALUES ('Received'), ('In Progress'), ('Quality Check'), ('Ready for Pickup');
+  // Fetch single order for editing
+  const handleEditClick = async (orderHash) => {
+    if (!orderHash) return toast.error("Order hash is missing");
 
--- -- Create admin employee account
--- INSERT INTO employee (employee_email, active_employee, added_date)
--- VALUES ('admin@autopro.com', 1, CURRENT_TIMESTAMP);
+    try {
+      const res = await axios.get(`/order/${orderHash}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (res.data && res.data.msg) {
+        setEditOrder(res.data.msg);
+      } else {
+        toast.error("Order data not found");
+      }
+    } catch (err) {
+      console.error("Failed to fetch order:", err);
+      toast.error("Failed to fetch order details");
+    }
+  };
 
--- -- Insert admin's personal info
--- INSERT INTO employee_info (employee_id, employee_first_name, employee_last_name, employee_phone)
--- VALUES (1, 'Amir', 'Mubarek', '0912345678');
+  // Update services for single order
+  const handleUpdate = async () => {
+    if (!editOrder) return;
+    setUpdating(true);
+    try {
+      await axios.put(
+        `/order/update/${editOrder.order_id}`,
+        editOrder.services.map(({ service_id, service_completed }) => ({
+          service_id,
+          service_completed,
+        })),
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
 
--- -- Insert hashed password (bcrypt)
--- INSERT INTO employee_pass (employee_id, employee_password_hashed)
--- VALUES (1, '$2b$10$DLRT08Hb96GCG0b1wMHy2uy3vHxW6yxi7q80fu64KjaXrF0eF0h5K');
+      // Update table live
+      setOrders((prev) =>
+        prev.map((o) =>
+          o.order_id === editOrder.order_id
+            ? {
+                ...o,
+                services: editOrder.services,
+                requestedServices: editOrder.services.map(
+                  (s) => services.find((as) => as.service_id === s.service_id)?.service_name || "N/A"
+                ),
+                status: getOrderStatus(editOrder.services),
+                statusColor: getStatusColor(getOrderStatus(editOrder.services)),
+              }
+            : o
+        )
+      );
 
--- -- Assign admin role (Assuming role_id for Admin is 3)
--- INSERT INTO employee_role (employee_id, company_role_id)
--- VALUES (1, 3);
+      toast.success("Order updated successfully!");
+      setEditOrder(null);
+    } catch (err) {
+      console.error("Failed to update order:", err);
+      toast.error("Failed to update order");
+    } finally {
+      setUpdating(false);
+    }
+  };
+
+  const handleStatusChange = (serviceId, newStatus) => {
+    setEditOrder((prev) => ({
+      ...prev,
+      services: prev.services.map((s) =>
+        s.service_id === serviceId ? { ...s, service_completed: newStatus } : s
+      ),
+    }));
+  };
+
+  return (
+    <div className="container-fluid">
+      <ToastContainer position="top-right" autoClose={3000} />
+      <div className="row">
+        <div className="col-md-3 col-lg-2 sidebar d-flex flex-column p-2">
+          <Sidebar />
+        </div>
+        <div className="col-md-9 col-lg-10 px-5">
+          <h1 className="title-bar section-title pt-4 pb-1">Orders</h1>
+
+          {loading ? (
+            <div className="d-flex justify-content-center align-items-center" style={{ height: "300px" }}>
+              <RingLoader size={50} color="#B8101F" />
+            </div>
+          ) : (
+            <div className="table-responsive" style={{ maxHeight: "355px", overflowY: "auto" }}>
+              <table className="table table-bordered table-hover bg-white mb-0">
+                <thead className="table-light" style={{ position: "sticky", top: 0, zIndex: 10 }}>
+                  <tr>
+                    <th>#</th>
+                    <th>Customer</th>
+                    <th>Vehicle</th>
+                    <th>Date</th>
+                    <th>Requested Services</th>
+                    <th>Services Status</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {orders.length > 0 ? orders.map((order, index) => (
+                    <tr key={order.order_id}>
+                      <td>{index + 1}</td>
+                      <td>
+                        {order.customer.customer_first_name} {order.customer.customer_last_name} <br />
+                        <small className="text-muted">{order.customer.customer_email} | {order.customer.customer_phone_number}</small>
+                      </td>
+                      <td>
+                        {order.vehicle.vehicle_make} {order.vehicle.vehicle_model} <br />
+                        <small className="text-muted">{order.vehicle.vehicle_year} | {order.vehicle.vehicle_tag}</small>
+                      </td>
+                      <td>{order.date}</td>
+                      <td>{order.requestedServices.join(", ")}</td>
+                      <td>
+                        {order.services.map((s) => (
+                          <span key={s.service_id} className={`badge bg-${getStatusColor(s.service_completed)} me-1`}>
+                            {s.service_completed}
+                          </span>
+                        ))}
+                      </td>
+                      <td>
+                        <span className={`badge bg-${order.statusColor} p-2 text-${order.statusColor === 'warning' ? 'dark' : 'light'}`}>
+                          {order.status}
+                        </span>
+                      </td>
+                      <td>
+                        <i
+                          className="bi bi-pencil-square fw-bold text-primary"
+                          style={{ cursor: "pointer", fontSize: "18px" }}
+                          onClick={() => handleEditClick(order.order_hash)} // <-- use order_hash
+                        ></i>
+                      </td>
+                    </tr>
+                  )) : (
+                    <tr>
+                      <td colSpan="8" className="text-center">No orders available.</td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          )}
+
+          {/* Modal */}
+          {editOrder && (
+            <div className="modal show d-block" tabIndex="-1">
+              <div className="modal-dialog">
+                <div className="modal-content">
+                  <div className="modal-header">
+                    <h5 className="modal-title">Update Services for Order #{editOrder.order_id}</h5>
+                    <button type="button" className="btn-close" onClick={() => setEditOrder(null)}></button>
+                  </div>
+                  <div className="modal-body">
+                    {editOrder.services.map((service) => (
+                      <div key={service.service_id} className="mb-3">
+                        <label className="form-label">
+                          {services.find((as) => as.service_id === service.service_id)?.service_name || service.service_name}
+                        </label>
+                        <select
+                          className="form-select"
+                          value={service.service_completed}
+                          onChange={(e) => handleStatusChange(service.service_id, e.target.value)}
+                        >
+                          {statusOptions.map((status) => (
+                            <option key={status} value={status}>{status}</option>
+                          ))}
+                        </select>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="modal-footer">
+                    <button className="btn btn-secondary" onClick={() => setEditOrder(null)}>Cancel</button>
+                    <button className="btn btn-primary" onClick={handleUpdate} disabled={updating}>
+                      {updating ? "Updating..." : "Update"}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default AllOrders;

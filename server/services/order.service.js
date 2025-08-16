@@ -204,11 +204,42 @@ async function singleOrder(order_hash) {
 }
 
 
-// function to update order
-async function updateOrder(orderData,updatedOrder) {
+// Update order and/or service status
+async function updateOrder(order_id, updatedServices) {
+  if (!order_id) {
+    return { error: "Order ID is required", status: 400 };
+  }
 
-  
+  if (!Array.isArray(updatedServices) || updatedServices.length === 0) {
+    return { error: "No services provided for update", status: 400 };
+  }
+
+  try {
+    // 1. Check if order exists
+    const orderRows = await db.query(
+      "SELECT order_id FROM orders WHERE order_id = ?",
+      [order_id]
+    );
+
+    if (!orderRows || orderRows.length === 0) {
+      return { error: "Order not found", status: 404 };
+    }
+
+    // 2. Update service_completed for each service
+    const updatePromises = updatedServices.map(({ service_id, service_completed }) => {
+      return db.query(
+        "UPDATE order_services SET service_completed = ? WHERE order_id = ? AND service_id = ?",
+        [service_completed, order_id, service_id]
+      );
+    });
+
+    await Promise.all(updatePromises);
+
+    return { message: "Service status updated successfully", status: 200 };
+  } catch (error) {
+    console.error("Update Service Status Error:", error);
+    return { error: "Internal Server Error", status: 500 };
+  }
 }
 
-
-module.exports = { addOrder, getOrder, singleOrder,updateOrder };
+module.exports = { addOrder, getOrder, singleOrder, updateOrder };

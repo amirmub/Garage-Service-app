@@ -39,7 +39,7 @@ function AddOrder() {
         const response = await axios.get("/vehicles", {
           headers: { Authorization: `Bearer ${loggedUser}` },
         });
-        setVehicleData(response.data.message);
+        setVehicleData(response.data.msg);
       } catch (error) {
         console.error("Error fetching vehicle data:", error);
       }
