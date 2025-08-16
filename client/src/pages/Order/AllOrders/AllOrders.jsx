@@ -153,7 +153,7 @@ function AllOrders() {
               <RingLoader size={50} color="#B8101F" />
             </div>
           ) : (
-            <div className="table-responsive" style={{ maxHeight: "355px", overflowY: "auto" }}>
+            <div className="table-responsive" style={{ maxHeight: "365px", overflowY: "auto" }}>
               <table className="table table-bordered table-hover bg-white mb-0">
                 <thead className="table-light" style={{ position: "sticky", top: 0, zIndex: 10 }}>
                   <tr>

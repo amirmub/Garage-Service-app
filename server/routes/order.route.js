@@ -17,4 +17,7 @@ router.get("/api/order/:id",orderController.singleOrder);
 // Update order route
 router.put("/api/order/update/:id",[authMiddleware.tokenVerify,authMiddleware.isAdmin],orderController.updateOrder);
 
+// delete order route
+router.delete("/api/order/delete/:id",[authMiddleware.tokenVerify,authMiddleware.isAdmin],orderController.deleteOrder);
+
 module.exports = router

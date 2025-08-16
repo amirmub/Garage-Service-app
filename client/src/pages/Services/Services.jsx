@@ -139,8 +139,8 @@ function Services() {
 
         <div className="col-md-9 col-lg-10 px-5  py-4">
           <div className="container my-3">
-            <h3 className="mb-2">Services we provide</h3>
-            <small>
+            <h3 className="mb-2  section-title pb-1">Services we provide</h3>
+            <small className="fw-bold">
               We offer a wide range of professional services tailored to meet your unique needs.
             </small>
 
