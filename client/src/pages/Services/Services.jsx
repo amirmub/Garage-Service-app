@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import axios from "../../utils/axios";
 import { getAuth } from "../../utils/auth";
 import { ClipLoader } from "react-spinners";
-import { toast } from "react-toastify";
+import { toast, ToastContainer } from "react-toastify";
 
 function Services() {
   const [services, setServices] = useState([]);
@@ -58,6 +58,8 @@ function Services() {
       });
       setServices(Array.isArray(refreshed.data.data) ? refreshed.data.data : []);
 
+       toast.success("Service Added successfully!",{duration: 2000});
+
       nameDom.current.value = "";
       descriptionDom.current.value = "";
     } catch (error) {
@@ -74,6 +76,7 @@ function Services() {
         headers: { Authorization: `Bearer ${loggedUser}` },
       });
       setServices((prev) => prev.filter((service) => service.service_id !== serviceId));
+      toast.success("Service Deleted successfully!",{duration: 2000});
     } catch (error) {
       console.log(error.response);
     }
@@ -112,7 +115,7 @@ function Services() {
         { headers: { Authorization: `Bearer ${loggedUser}` } }
       );
 
-      toast.success("Service updated successfully!");
+       toast.success("Service updated successfully!",{duration: 2000});
       setEditRow(null);
 
       const refreshed = await axios.get("/all-services", {
@@ -126,6 +129,8 @@ function Services() {
   };
 
   return (
+    <>
+     <ToastContainer position="top-right" autoClose={3000} />
     <div className="container-fluid">
       <div className="row">
         <div className="col-md-3 col-lg-2 sidebar d-flex flex-column p-2">
@@ -243,6 +248,7 @@ function Services() {
         </div>
       </div>
     </div>
+    </>
   );
 }
 
