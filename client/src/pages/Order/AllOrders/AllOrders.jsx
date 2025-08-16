@@ -128,6 +128,26 @@ function AllOrders() {
     }));
   };
 
+  // delete order
+  async function handleDelete(orderId) {
+    if (!window.confirm("Are you sure you want to delete this order?"))
+      return;
+    try {
+      const result = await axios.delete(`/order/delete/${orderId}`,{
+        headers : {
+          Authorization : `Bearer ${token}`
+        }
+      });
+      // console.log(result);
+      setOrders((prev) => prev.filter((order) => order.order_id !== orderId));
+      toast.success("Order deleted successfully!");
+      
+    } catch (error) {
+      console.log(error.response);
+      toast.error("Failed to delete order!");
+    }
+  }
+
   const getBadgeColor = (status) => {
     switch (status) {
       case "Received": return "bg-dark text-white";
@@ -196,7 +216,7 @@ function AllOrders() {
                         <span
                           className={`badge p-2 mt-3 text-${order.status === "Closed" ? "white" : "white"}`}
                           style={{
-                            backgroundColor: order.status === "Open" ? "#999" : "#dc3545",
+                            backgroundColor: order.status === "Open" ? "#091436" : "#dc3545",
                             boxShadow: order.status === "Open" ? "0 1px 3px rgba(0,0,0,0.2)" : "none"
                           }}
                         >
@@ -205,9 +225,14 @@ function AllOrders() {
                       </td>
                       <td>
                         <i
-                          className="bi bi-pencil-square fw-bold text-primary"
-                          style={{ cursor: "pointer", fontSize: "18px" }}
+                          className="bi bi-pencil-square fw-bolder text-secondary mx-2"
+                          style={{ cursor: "pointer", fontSize: "19px" }}
                           onClick={() => handleEditClick(order.order_hash)}
+                        ></i>
+                        <i
+                          className="bi bi-trash-fill fw-bolder text-danger"
+                          style={{ cursor: "pointer", fontSize: "20px" }}
+                          onClick={() => handleDelete(order.order_id)}
                         ></i>
                       </td>
                     </tr>
