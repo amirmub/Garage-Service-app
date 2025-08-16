@@ -14,8 +14,6 @@ async function addOrder(orderData) {
     return { error: "Please fill all required fields and provide at least one service.", status: 400 };
   }
 
-
-
   try {
     // Get most recent employee_id
     const employee = await db.query(
@@ -242,4 +240,29 @@ async function updateOrder(order_id, updatedServices) {
   }
 }
 
-module.exports = { addOrder, getOrder, singleOrder, updateOrder };
+
+async function deleteOrder(orderId) {
+  try {
+    // 1.delete from order_info table
+    await db.query(`DELETE FROM order_info WHERE  order_id = ? `,[orderId]);
+
+    // 2.delete from order_services table
+    await db.query(`DELETE FROM order_services WHERE  order_id = ? `,[orderId]);
+
+    // last delete from orders table
+    const result = await db.query(`DELETE FROM orders WHERE  order_id = ? `,[orderId]);    
+
+    if (result.affectedRows === 0) {
+      return { error: "Order not found", status: 404 };
+    }
+
+    return { message: "Delete order successfully", status: 200 };
+    
+  } catch (error) {
+    console.error("delete order Status Error:", error);
+    return { error: "Internal Server Error", status: 500 };
+  }
+  
+}
+
+module.exports = { addOrder, getOrder, singleOrder, updateOrder,deleteOrder };
