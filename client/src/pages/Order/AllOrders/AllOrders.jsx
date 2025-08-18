@@ -59,7 +59,7 @@ function AllOrders() {
 
         const ordersData = ordersRes.data.msg || [];
         setHash(ordersData);
-        console.log(vehiclesData);
+        console.log(ordersData);
 
         const mappedOrders = ordersData.map((o) => {
           const customer =
@@ -73,11 +73,16 @@ function AllOrders() {
                 ?.service_name || "N/A"
           );
 
-          // Determine status based on all services completed
+         // Determine status based on all services AND additional request
           const allReady = (o.services || []).every(
             (s) => s.service_completed === "Ready for Pickup"
           );
-          const status = allReady ? "Closed" : "Open";
+          const additionalReady =
+            (o.services[0]?.additional_requests_completed || "") ===
+            "Ready for Pickup";
+
+          const status = allReady && additionalReady ? "Closed" : "Open";
+
 
           return {
             ...o,
@@ -119,17 +124,34 @@ function AllOrders() {
 
   const handleUpdate = async () => {
     if (!editOrder) return;
-    setUpdating(true);
-    try {
-      await axios.put(
-        `/order/update/${editOrder.order_id}`,
-        editOrder.services.map(({ service_id, service_completed }) => ({
-          service_id,
-          service_completed,
-        })),
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
 
+    setUpdating(true);
+
+    try {
+      // Prepare payload for backend
+      const payload = editOrder.services.length
+        ? editOrder.services.map((s, idx) => ({
+            service_id: s.service_id,
+            service_completed: s.service_completed,
+            // Only first service holds additional request
+            additional_requests_completed:
+              idx === 0 ? s.additional_requests_completed : null,
+          }))
+        : [
+            {
+              service_id: editOrder.services[0]?.service_id || null,
+              service_completed: null,
+              additional_requests_completed:
+                editOrder.services[0]?.additional_requests_completed || null,
+            },
+          ];
+
+      // Send PUT request
+      await axios.put(`/order/update/${editOrder.order_id}`, payload, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      // Update orders locally
       setOrders((prev) =>
         prev.map((o) =>
           o.order_id === editOrder.order_id
@@ -141,11 +163,15 @@ function AllOrders() {
                     services.find((as) => as.service_id === s.service_id)
                       ?.service_name || "N/A"
                 ),
-                status: editOrder.services.every(
-                  (s) => s.service_completed === "Ready for Pickup"
-                )
-                  ? "Closed"
-                  : "Open",
+               status:
+  editOrder.services.every(
+    (s) => s.service_completed === "Ready for Pickup"
+  ) &&
+  (editOrder.services[0]?.additional_requests_completed ===
+    "Ready for Pickup")
+    ? "Closed"
+    : "Open",
+
               }
             : o
         )
@@ -154,7 +180,8 @@ function AllOrders() {
       toast.success("Order updated successfully!");
       setEditOrder(null);
     } catch (err) {
-      toast.error("Failed to update order");
+      console.error(err);
+      toast.error(err?.response?.data?.msg || "Failed to update order");
     } finally {
       setUpdating(false);
     }
@@ -202,6 +229,15 @@ function AllOrders() {
     }
   };
 
+  const handleAdditionalRequestChange = (newStatus) => {
+    setEditOrder((prev) => ({
+      ...prev,
+      services: prev.services.map((s, idx) =>
+        idx === 0 ? { ...s, additional_requests_completed: newStatus } : s
+      ),
+    }));
+  };
+
   return (
     <div className="container-fluid">
       <ToastContainer position="top-right" autoClose={3000} />
@@ -229,14 +265,16 @@ function AllOrders() {
                   className="table-light"
                   style={{ position: "sticky", top: 0, zIndex: 10 }}
                 >
-                  <tr  style={{
-                        fontSize: "14.5px"
-                      }}>
+                  <tr
+                    style={{
+                      fontSize: "14.5px",
+                    }}
+                  >
                     <th>#</th>
                     <th>Customer</th>
                     <th>Vehicle</th>
                     <th>Date</th>
-                   <th
+                    <th
                       style={{
                         whiteSpace: "nowrap",
                       }}
@@ -252,125 +290,199 @@ function AllOrders() {
                 <tbody>
                   {orders.length > 0 ? (
                     orders.map((order, index) => {
-                      return order.services.map((s, sIdx) => {
-                        const serviceName =
-                          services.find((as) => as.service_id === s.service_id)
-                            ?.service_name || "N/A";
+                      return (
+                        <>
+                          {/* Render services normally */}
+                          {order.services.map((s, sIdx) => {
+                            const serviceName =
+                              services.find(
+                                (as) => as.service_id === s.service_id
+                              )?.service_name || "N/A";
 
-                        return (
-                          <tr key={`${order.order_id}-${s.service_id}`}
-                              style={{
-                                borderBottom:
-                                  sIdx === order.services.length - 1 ? "1.3px solid #000" : "1.9px solid #dee2e6",
-                              }}>
-                            {/* first row order details */}
-                            {sIdx === 0 && (
-                              <>
-                                <td rowSpan={order.services.length}>
-                                  {index + 1}
-                                </td>
-
-                                {/* Customer Column */}
-                                <td rowSpan={order.services.length}>
-                                  <strong>
-                                    {order.customer.customer_first_name}{" "}
-                                    {order.customer.customer_last_name}
-                                  </strong>
-                                  <br />
-                                  <small className="text-muted">
-                                    <small style={{fontSize : "10px"}}>👉</small> {order.order_hash} {"  "} <br />
-                                    <small style={{fontSize : "10px"}}>📞</small> { order.customer.customer_phone_number}
-                                  </small>
-                                </td>
-
-                                {/* Vehicle Column */}
-                                <td rowSpan={order.services.length}>
-                                  <strong>
-                                    {order.vehicle.vehicle_make}  {" "}
-                                    {/* {order.vehicle.vehicle_model} */}
-                                  </strong>
-                                  <br />
-                                  <small className="text-muted">
-                                    {order.vehicle.vehicle_serial} {" "}
-                                  </small><br />
-                                  <small className="text-muted">
-                                   {order.vehicle.vehicle_tag}
-                                  </small>
-                                    
-                                </td>
-
-                                <td  rowSpan={order.services.length}>
-                                  <div className="mt-3">{order.date}</div>
-                                </td>
-                              </>
-                            )}
-
-                            {/* Requested service */}
-                            <td>
-                              <small style={{ fontWeight: "550" }}>
-                                {serviceName}
-                              </small>
-                            </td>
-
-                            {/* Service status */}
-                            <td>
-                              <span
-                                className={`badge mx-3 p-2 border ${getBadgeColor(
-                                  s.service_completed
-                                )}`}
-                                style={
-                                  s.service_completed === "Quality Check"
-                                    ? { backgroundColor: "#999", color: "#fff" }
-                                    : {}
-                                }
+                            return (
+                              <tr
+                                key={`${order.order_id}-${s.service_id}`}
+                                style={{
+                                  borderBottom: "2px solid #dee2e6", // thin line for normal service rows
+                                }}
                               >
-                                <strong style={{ fontSize: "10px" }}>
-                                  {s.service_completed}
-                                </strong>
-                              </span>
-                            </td>
+                                {/* First row order details */}
+                                {sIdx === 0 && (
+                                  <>
+                                    <td rowSpan={order.services.length + 1}>
+                                      {index + 1}
+                                    </td>
 
-                            {/* First row only: order status + actions */}
-                            {sIdx === 0 && (
-                              <>
-                                <td rowSpan={order.services.length}>
+                                    {/* Customer */}
+                                    <td rowSpan={order.services.length + 1}>
+                                      <strong>
+                                        <small className="fa fa-user text-primary me-2"></small>
+                                        {order.customer.customer_first_name}{" "}
+                                        {order.customer.customer_last_name}
+                                      </strong>
+                                      <br />
+                                      <p className="text-muted my-3">
+                                        <small className="fw-bold">
+                                          {order.order_hash}
+                                        </small>{" "}
+                                        <br />
+                                        <small style={{ fontSize: "10px" }}>
+                                          📞
+                                        </small>{" "}
+                                        {order.customer.customer_phone_number}
+                                      </p>
+                                    </td>
+
+                                    {/* Vehicle */}
+                                    <td
+                                      rowSpan={order.services.length + 1}
+                                      style={{
+                                        wordBreak: "break-all",
+                                        whiteSpace: "normal",
+                                      }}
+                                    >
+                                      <strong>
+                                        {order.vehicle.vehicle_make}
+                                      </strong>
+                                      <br />
+                                      <small className="text-muted">
+                                        | {order.vehicle.vehicle_color} |
+                                      </small>
+                                      <br />
+                                      <small className="text-muted">
+                                        {order.vehicle.vehicle_tag}
+                                      </small>
+                                    </td>
+
+                                    <td rowSpan={order.services.length + 1}>
+                                      <div className="mt-3">{order.date}</div>
+                                    </td>
+                                  </>
+                                )}
+
+                                {/* Requested service */}
+                                <td>
+                                  <small style={{ fontWeight: "550" }}>
+                                    {serviceName}
+                                  </small>
+                                </td>
+
+                                {/* Service status */}
+                                <td>
                                   <span
-                                    className={`badge p-2 mt-4 mx-auto text-white`}
-                                    style={{
-                                      backgroundColor:
-                                        order.status === "Open"
-                                          ? "#091436"
-                                          : "#dc3545",
-                                    }}
+                                    className={`badge mx-3 p-2 border ${getBadgeColor(
+                                      s.service_completed
+                                    )}`}
+                                    style={
+                                      s.service_completed === "Quality Check"
+                                        ? {
+                                            backgroundColor: "#999",
+                                            color: "#fff",
+                                          }
+                                        : {}
+                                    }
                                   >
-                                    {order.status}
+                                    <strong style={{ fontSize: "10px" }}>
+                                      {s.service_completed}
+                                    </strong>
                                   </span>
                                 </td>
-                                <td rowSpan={order.services.length}>
-                                  <i
-                                    className="bi bi-pencil-square fw-bolder text-secondary mx-2"
-                                    style={{
-                                      cursor: "pointer",
-                                      fontSize: "19px",
-                                    }}
-                                    onClick={() =>
-                                      handleEditClick(order.order_hash)
+
+                                {/* First row only: order status + actions */}
+                                {sIdx === 0 && (
+                                  <>
+                                    <td rowSpan={order.services.length + 1}>
+                                      <span
+                                        className={`badge p-2 mt-4 mx-auto text-white`}
+                                        style={{
+                                          backgroundColor:
+                                            order.status === "Open"
+                                              ? "#091436"
+                                              : "#dc3545",
+                                        }}
+                                      >
+                                        {order.status}
+                                      </span>
+                                    </td>
+                                    <td rowSpan={order.services.length + 1}>
+                                      <i
+                                        className="bi bi-pencil-square fw-bolder text-secondary mx-1"
+                                        style={{
+                                          cursor: "pointer",
+                                          fontSize: "17px",
+                                        }}
+                                        onClick={() =>
+                                          handleEditClick(order.order_hash)
+                                        }
+                                      ></i>
+                                      <i
+                                        className="bi bi-trash-fill fw-bolder text-danger"
+                                        style={{
+                                          cursor: "pointer",
+                                          fontSize: "18px",
+                                        }}
+                                        onClick={() =>
+                                          handleDelete(order.order_id)
+                                        }
+                                      ></i>
+                                    </td>
+                                  </>
+                                )}
+                              </tr>
+                            );
+                          })}
+
+                          {/* Extra row for Additional Request */}
+                          <tr
+                            key={`${order.order_id}-additional`}
+                            style={{
+                              borderBottom: "1.8px solid #000", // ✅ thick divider between orders
+                            }}
+                          >
+                            {/* Requested Services column */}
+                            <td>
+                              <small
+                                style={{ fontWeight: "600", color: "#000" }}
+                              >
+                                Additional Request
+                              </small>
+                              <br />
+                            </td>
+
+                            {/* Services Status column */}
+                            <td>
+                              {order.services[0]
+                                ?.additional_requests_completed ? (
+                                <span
+                                  className={`badge mx-3 p-2 border ${getBadgeColor(
+                                    order.services[0]
+                                      .additional_requests_completed
+                                  )}`}
+                                  style={
+                                    order.services[0]
+                                      .additional_requests_completed ===
+                                    "Quality Check"
+                                      ? {
+                                          backgroundColor: "#999",
+                                          color: "#fff",
+                                        }
+                                      : {}
+                                  }
+                                >
+                                  <strong style={{ fontSize: "10px" }}>
+                                    {
+                                      order.services[0]
+                                        .additional_requests_completed
                                     }
-                                  ></i>
-                                  <i
-                                    className="bi bi-trash-fill fw-bolder text-danger"
-                                    style={{
-                                      cursor: "pointer",
-                                      fontSize: "20px",
-                                    }}
-                                    onClick={() => handleDelete(order.order_id)}
-                                  ></i>
-                                </td>
-                              </>
-                            )}
+                                  </strong>
+                                </span>
+                              ) : (
+                                <span className="text-muted">No status</span>
+                              )}
+                            </td>
                           </tr>
-                        );
-                      });
+                        </>
+                      );
                     })
                   ) : (
                     <tr>
@@ -425,7 +537,30 @@ function AllOrders() {
                         </select>
                       </div>
                     ))}
+
+                    {/* Additional Request Editor */}
+                    <div className="mb-2">
+                      <h6 className="form-label">Additional Request</h6>
+                      <select
+                        className="form-select"
+                        value={
+                          editOrder.services[0]
+                            ?.additional_requests_completed || ""
+                        }
+                        onChange={(e) =>
+                          handleAdditionalRequestChange(e.target.value)
+                        }
+                      >
+                        <option value="">-- Select Status --</option>
+                        {statusOptions.map((status) => (
+                          <option key={status} value={status}>
+                            {status}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
                   </div>
+
                   <div className="modal-footer">
                     <button
                       className="btn btn-secondary"

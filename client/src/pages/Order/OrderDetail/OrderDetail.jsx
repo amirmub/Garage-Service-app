@@ -48,6 +48,8 @@ function OrderDetail() {
         const res = await axios.get("/orders", { headers: { Authorization: `Bearer ${token}` } });
         const ordersData = res.data.msg || [];
         setOrders(ordersData);
+        console.log(ordersData);
+        
 
         if (ordersData.length > 0) {
           const orderDate = new Date(ordersData[0].order_date);
@@ -67,7 +69,14 @@ function OrderDetail() {
   const customer = customers.find(c => c.customer_id === order.customer_id) || {};
   const vehicle = vehicles.find(v => v.vehicle_id === order.vehicle_id) || {};
   const services = order.services || [];
-  const additionalRequest = order.additional_request || "";
+ // Text comes from order.additional_request (string description)
+  // Status comes from the service array (the extra hardcoded service row)
+  const additionalRequestText = order.additional_request || "";
+  const additionalRequestStatus =
+  services.find(s => s.additional_requests_completed)?.additional_requests_completed || "Not Started";
+
+  console.log(order);
+  
 
   const getCircleColor = (step) => {
     switch (step) {
@@ -205,15 +214,22 @@ function OrderDetail() {
                 ))
               )}
 
-              {additionalRequest && (
-                <div className="d-flex justify-content-between align-items-center mt-3">
-                  <div>
-                    <h6 className="fw-semibold">Additional Request</h6>
-                    <p className="text-muted">{additionalRequest}</p>
-                  </div>
-                  <span className="badge p-2 my-1 border" style={getBadgeStyle("Received")}>Received</span>
-                </div>
-              )}
+             {additionalRequestText && (
+  <div className="d-flex justify-content-between align-items-center mt-3">
+    <div>
+      <h6 className="fw-semibold">Additional Request</h6>
+      <p className="text-muted">{additionalRequestText}</p>
+    </div>
+    <span
+      className="badge p-2 my-1 border"
+      style={getBadgeStyle(additionalRequestStatus)}
+    >
+      {additionalRequestStatus}
+    </span>
+  </div>
+)}
+
+
             </div>
           </section>
 

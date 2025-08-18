@@ -63,7 +63,8 @@ function Contact() {
               data-aos-delay="100"
             >
              {
-              isLoading ? <div style={{ height: "400px" }} className="d-flex justify-content-center align-items-center"><ClipLoader size={50} color="#B8101F" /> </div>:  <iframe
+              isLoading ? <div style={{ height: "450px",background: "#E5E3DF" }} className="d-flex justify-content-center align-items-center"><ClipLoader size={50} color="#B8101F" /> </div>
+               :  <iframe
                 className="position-relative rounded w-100 h-100"
                 src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d15957.566146462412!2d38.7468892!3d9.0301406!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x164b8539d253a3a3%3A0x5e3b6ea1df37e2e3!2sAddis%20Ababa%2C%20Ethiopia!5e0!3m2!1sen!2set!4v1720989000000!5m2!1sen!2set"
                 frameBorder="0"

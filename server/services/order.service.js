@@ -72,14 +72,14 @@ async function addOrder(orderData) {
      const defaultServiceStatus = "Received"; // default for service_completed
 
     // Insert into order_services with default service_completed = "Received"
-    const placeholders = order_services.map(() => "(?, ?, ?)").join(", ");
+    const placeholders = order_services.map(() => "(?, ?, ?,?)").join(", ");
     const values = [];
     order_services.forEach(({ service_id }) => {
-      values.push(order_id, service_id, defaultServiceStatus);
+      values.push(order_id, service_id, defaultServiceStatus, "Received");
     });
 
     await db.query(
-      `INSERT INTO order_services (order_id, service_id, service_completed) VALUES ${placeholders}`,
+      `INSERT INTO order_services (order_id, service_id, service_completed,additional_requests_completed) VALUES ${placeholders}`,
       values
     );
 
@@ -100,39 +100,38 @@ async function addOrder(orderData) {
 
 async function getOrder() {
   try {
-const result = `
-  SELECT 
-    orders.order_id,
-    orders.*,
-    order_info.*,
-    JSON_ARRAYAGG(
-      JSON_OBJECT(
-        'service_id', common_services.service_id,
-        'service_name', common_services.service_name,
-        'service_description', common_services.service_description,
-        'service_completed', order_services.service_completed
-      )
-    ) AS services
-  FROM orders
-  INNER JOIN order_info 
-    ON orders.order_id = order_info.order_id
-  INNER JOIN order_services 
-    ON orders.order_id = order_services.order_id
-  INNER JOIN common_services
-    ON order_services.service_id = common_services.service_id
-  GROUP BY orders.order_id
-  ORDER BY orders.order_id DESC;
-`;
+    const result = `
+     SELECT 
+  orders.order_id,
+  orders.*,
+  order_info.*,
+  JSON_ARRAYAGG(
+    JSON_OBJECT(
+      'service_id', common_services.service_id,
+      'service_name', common_services.service_name,
+      'service_description', common_services.service_description,
+      'service_completed', order_services.service_completed,
+      'additional_requests_completed', order_services.additional_requests_completed
+    )
+  ) AS services
+FROM orders
+INNER JOIN order_info 
+  ON orders.order_id = order_info.order_id
+INNER JOIN order_services 
+  ON orders.order_id = order_services.order_id
+INNER JOIN common_services
+  ON order_services.service_id = common_services.service_id
+GROUP BY orders.order_id
+ORDER BY orders.order_id DESC;
 
+    `;
 
     const rows = await db.query(result);
 
-    // Parse the JSON array string into JS array
-   const formattedRows = rows.map(row => ({
-  ...row,
-  services: typeof row.services === "string" ? JSON.parse(row.services) : row.services || []
-}));
-
+    const formattedRows = rows.map(row => ({
+      ...row,
+      services: typeof row.services === "string" ? JSON.parse(row.services) : row.services || []
+    }));
 
     return { message: formattedRows, status: 200 };
 
@@ -142,6 +141,7 @@ const result = `
   }
 }
 
+
 // function to get single order
 async function singleOrder(order_hash) {
   if (!order_hash) {
@@ -149,37 +149,38 @@ async function singleOrder(order_hash) {
   }
 
   try {
-    const query = `
-    SELECT 
-      orders.*,
-      order_info.*,
-      customer_info.*,
-      customer_identifier.*,
-      customer_vehicle_info.*,
-      JSON_ARRAYAGG(
-        JSON_OBJECT(
-          'service_id', common_services.service_id,
-          'service_name', common_services.service_name,
-          'service_description', common_services.service_description,
-          'service_completed', order_services.service_completed
-        )
-      ) AS services
-    FROM orders
-    INNER JOIN order_info 
-      ON orders.order_id = order_info.order_id
-    LEFT JOIN customer_info 
-      ON orders.customer_id = customer_info.customer_id
-    LEFT JOIN customer_identifier 
-      ON orders.customer_id = customer_identifier.customer_id
-    LEFT JOIN customer_vehicle_info 
-      ON orders.customer_id = customer_vehicle_info.customer_id
-    INNER JOIN order_services 
-      ON orders.order_id = order_services.order_id
-    INNER JOIN common_services
-      ON order_services.service_id = common_services.service_id
-    WHERE orders.order_hash = ?
-    GROUP BY orders.order_id;
-  `;
+const query = `
+SELECT 
+  orders.*,
+  order_info.*,
+  customer_info.*,
+  customer_identifier.*,
+  customer_vehicle_info.*,
+  JSON_ARRAYAGG(
+    JSON_OBJECT(
+      'service_id', common_services.service_id,
+      'service_name', common_services.service_name,
+      'service_description', common_services.service_description,
+      'service_completed', order_services.service_completed,
+      'additional_requests_completed', order_services.additional_requests_completed
+    )
+  ) AS services
+FROM orders
+INNER JOIN order_info 
+  ON orders.order_id = order_info.order_id
+LEFT JOIN customer_info 
+  ON orders.customer_id = customer_info.customer_id
+LEFT JOIN customer_identifier 
+  ON orders.customer_id = customer_identifier.customer_id
+LEFT JOIN customer_vehicle_info 
+  ON orders.customer_id = customer_vehicle_info.customer_id
+INNER JOIN order_services 
+  ON orders.order_id = order_services.order_id
+INNER JOIN common_services
+  ON order_services.service_id = common_services.service_id
+WHERE orders.order_hash = ?
+GROUP BY orders.order_id;
+`;
 
 
     const rows = await db.query(query, [order_hash]);
@@ -203,35 +204,38 @@ async function singleOrder(order_hash) {
 
 
 // Update order and/or service status
-async function updateOrder(order_id, updatedServices) {
-  if (!order_id) {
-    return { error: "Order ID is required", status: 400 };
-  }
+async function updateOrder(order_id, updatedServices, additional_request_status) {
+  if (!order_id) return { error: "Order ID is required", status: 400 };
 
-  if (!Array.isArray(updatedServices) || updatedServices.length === 0) {
+  if ((!Array.isArray(updatedServices) || updatedServices.length === 0) && !additional_request_status) {
     return { error: "No services provided for update", status: 400 };
   }
 
   try {
-    // 1. Check if order exists
-    const orderRows = await db.query(
-      "SELECT order_id FROM orders WHERE order_id = ?",
-      [order_id]
-    );
+    const orderRows = await db.query("SELECT order_id FROM orders WHERE order_id = ?", [order_id]);
+    if (!orderRows || orderRows.length === 0) return { error: "Order not found", status: 404 };
 
-    if (!orderRows || orderRows.length === 0) {
-      return { error: "Order not found", status: 404 };
+    if (Array.isArray(updatedServices) && updatedServices.length > 0) {
+      await Promise.all(updatedServices.map(({ service_id, service_completed, additional_requests_completed }) => {
+        return db.query(
+          `UPDATE order_services 
+           SET service_completed = COALESCE(?, service_completed),
+               additional_requests_completed = COALESCE(?, additional_requests_completed)
+           WHERE order_id = ? AND service_id = ?`,
+          [service_completed, additional_requests_completed, order_id, service_id]
+        );
+      }));
     }
 
-    // 2. Update service_completed for each service
-    const updatePromises = updatedServices.map(({ service_id, service_completed }) => {
-      return db.query(
-        "UPDATE order_services SET service_completed = ? WHERE order_id = ? AND service_id = ?",
-        [service_completed, order_id, service_id]
+    if (additional_request_status) {
+      // Update first service only or a dedicated field
+      await db.query(
+        `UPDATE order_services 
+         SET additional_requests_completed = ?
+         WHERE order_id = ?`,
+        [additional_request_status, order_id]
       );
-    });
-
-    await Promise.all(updatePromises);
+    }
 
     return { message: "Service status updated successfully", status: 200 };
   } catch (error) {
@@ -239,6 +243,8 @@ async function updateOrder(order_id, updatedServices) {
     return { error: "Internal Server Error", status: 500 };
   }
 }
+
+
 
 
 async function deleteOrder(orderId) {

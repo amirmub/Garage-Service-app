@@ -110,7 +110,6 @@ CREATE TABLE IF NOT EXISTS `order_info` (
   `additional_request` TEXT,
   `notes_for_internal_use` TEXT,
   `notes_for_customer` TEXT,
-  `additional_requests_completed` int(11) NOT NULL,
   PRIMARY KEY (order_info_id),
   FOREIGN KEY (order_id) REFERENCES orders(order_id)
 ) ENGINE=InnoDB;
@@ -120,6 +119,7 @@ CREATE TABLE IF NOT EXISTS `order_services` (
   `order_id` int(11) NOT NULL,
   `service_id` int(11) NOT NULL,
   `service_completed` TEXT,
+  `additional_requests_completed` TEXT,
   PRIMARY KEY (order_service_id),
   FOREIGN KEY (order_id) REFERENCES orders(order_id),
   FOREIGN KEY (service_id) REFERENCES common_services(service_id)

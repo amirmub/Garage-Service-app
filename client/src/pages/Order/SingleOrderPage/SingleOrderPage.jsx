@@ -7,8 +7,6 @@ import { format } from "date-fns";
 function SingleOrderPage() {
   const { orderHash } = useParams();
   const [order, setOrder] = useState(null);
-  const [customer, setCustomer] = useState({});
-  const [vehicle, setVehicle] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [estimatedCompletion, setEstimatedCompletion] = useState(null);
@@ -30,24 +28,6 @@ function SingleOrderPage() {
 
         setOrder(orderData);
 
-        setCustomer({
-          customer_first_name: orderData.customer_first_name,
-          customer_last_name: orderData.customer_last_name,
-          customer_email: orderData.customer_email,
-          customer_phone_number: orderData.customer_phone_number,
-          customer_id: orderData.customer_id,
-        });
-
-        setVehicle({
-          vehicle_make: orderData.vehicle_make,
-          vehicle_type: orderData.vehicle_type,
-          vehicle_color: orderData.vehicle_color,
-          vehicle_year: orderData.vehicle_year,
-          vehicle_serial: orderData.vehicle_serial,
-          vehicle_tag: orderData.vehicle_tag,
-          vehicle_id: orderData.vehicle_id,
-        });
-
         if (orderData.order_date) {
           const orderDate = new Date(orderData.order_date);
           const completionDate = new Date(orderDate);
@@ -66,38 +46,6 @@ function SingleOrderPage() {
     fetchOrder();
   }, [orderHash]);
 
-  const getCircleColor = (step) => {
-    switch (step) {
-      case "Received": return "#343a40"; // dark
-      case "In Progress": return "#ffc107"; // warning
-      case "Quality Check": return "#999"; // NEW inline
-      case "Ready for Pickup": return "#28a745"; // success
-      default: return "#6c757d"; // secondary
-    }
-  };
-
-  const getTextColor = (step, idx) => {
-    if (idx === orderStatus) return "#343a40";
-    if (idx < orderStatus) return "#28a745";
-    switch (step) {
-      case "Received": return "#6c757d";
-      case "In Progress": return "#ffc107";
-      case "Quality Check": return "#999"; // NEW inline
-      case "Ready for Pickup": return "#28a745";
-      default: return "#6c757d";
-    }
-  };
-
-  const getServiceBadgeStyle = (status) => {
-    switch (status) {
-      case "Received": return { backgroundColor: "#343a40", color: "#fff" };
-      case "In Progress": return { backgroundColor: "#ffc107", color: "#343a40" };
-      case "Quality Check": return { backgroundColor: "#999", color: "#fff" }; // NEW inline
-      case "Ready for Pickup": return { backgroundColor: "#28a745", color: "#fff" };
-      default: return { backgroundColor: "#6c757d", color: "#fff" };
-    }
-  };
-
   if (loading)
     return (
       <div style={{ margin: "150px auto" }} className="d-flex justify-content-center align-items-center">
@@ -114,11 +62,64 @@ function SingleOrderPage() {
 
   if (!order) return <p>No order data available.</p>;
 
+  // Use customer & vehicle info directly from order
+  const customer = {
+    customer_first_name: order.customer_first_name,
+    customer_last_name: order.customer_last_name,
+    customer_email: order.customer_email,
+    customer_phone_number: order.customer_phone_number,
+    customer_id: order.customer_id,
+  };
+
+  const vehicle = {
+    vehicle_make: order.vehicle_make,
+    vehicle_type: order.vehicle_type,
+    vehicle_color: order.vehicle_color,
+    vehicle_year: order.vehicle_year,
+    vehicle_serial: order.vehicle_serial,
+    vehicle_tag: order.vehicle_tag,
+    vehicle_id: order.vehicle_id,
+  };
+
   const services = order.services || [];
-  const additionalRequest = order.additional_request || "";
+  const additionalRequestText = order.additional_request || "";
+  const additionalRequestStatus =
+    services.find(s => s.additional_requests_completed)?.additional_requests_completed || "Not Started";
+
+  const getCircleColor = (step) => {
+    switch (step) {
+      case "Received": return "#343a40";
+      case "In Progress": return "#ffc107";
+      case "Quality Check": return "#999";
+      case "Ready for Pickup": return "#28a745";
+      default: return "#6c757d";
+    }
+  };
+
+  const getTextColor = (step, idx) => {
+    if (idx === orderStatus) return "#343a40";
+    if (idx < orderStatus) return "#28a745";
+    switch (step) {
+      case "Received": return "#6c757d";
+      case "In Progress": return "#ffc107";
+      case "Quality Check": return "#999";
+      case "Ready for Pickup": return "#28a745";
+      default: return "#6c757d";
+    }
+  };
+
+  const getBadgeStyle = (status) => {
+    switch (status) {
+      case "Received": return { backgroundColor: "#343a40", color: "#fff" };
+      case "In Progress": return { backgroundColor: "#ffc107", color: "#343a40" };
+      case "Quality Check": return { backgroundColor: "#999", color: "#fff" };
+      case "Ready for Pickup": return { backgroundColor: "#28a745", color: "#fff" };
+      default: return { backgroundColor: "#6c757d", color: "#fff" };
+    }
+  };
 
   return (
-    <div className="container mt-4 mb-5">
+    <div className="container my-5">
       <header className="mb-4">
         <div className="card" style={{ backgroundColor: "#f8f9fa", padding: "8px", borderRadius: "8px", maxWidth: "fit-content" }}>
           <h5 className="mb-0 d-flex align-items-center">
@@ -130,19 +131,20 @@ function SingleOrderPage() {
         <strong className="text-muted">Track your order progress and details below.</strong>
       </header>
 
-      {/* Order Progress Timeline */}
+      {/* Timeline */}
       <section className="mb-5">
         <h5 className="mb-3 text-center">Order Progress</h5>
         <div className="d-flex justify-content-between align-items-center position-relative">
           {steps.map((step, idx) => (
             <div key={step} className="text-center flex-fill position-relative">
               <div
-                className="mx-auto mb-2 rounded-circle"
                 style={{
                   width: 24,
                   height: 24,
-                  zIndex: 2,
                   backgroundColor: getCircleColor(step),
+                  borderRadius: "50%",
+                  margin: "0 auto 8px",
+                  zIndex: 2
                 }}
               />
               <small style={{ color: getTextColor(step, idx), fontWeight: step === "Quality Check" ? 600 : 500 }}>{step}</small>
@@ -156,7 +158,7 @@ function SingleOrderPage() {
                     top: "50%",
                     left: "100%",
                     transform: "translateY(-50%)",
-                    zIndex: 1,
+                    zIndex: 1
                   }}
                 />
               )}
@@ -209,7 +211,7 @@ function SingleOrderPage() {
                   <div key={service_id} style={{ borderBottom: "1px solid #6c757d", paddingBottom: "8px", marginBottom: "8px" }}>
                     <div className="d-flex justify-content-between align-items-center">
                       <p className="mb-1 fw-bolder">{service_name}</p>
-                      <span className="badge p-2 my-1 border" style={getServiceBadgeStyle(service_completed || "Received")}>
+                      <span className="badge p-2 my-1 border" style={getBadgeStyle(service_completed || "Received")}>
                         {service_completed || "Received"}
                       </span>
                     </div>
@@ -218,14 +220,17 @@ function SingleOrderPage() {
                 ))
               )}
 
-              {additionalRequest && (
+              {additionalRequestText && (
                 <div className="d-flex justify-content-between align-items-center mt-3">
                   <div>
                     <h6 className="fw-semibold">Additional Request</h6>
-                    <p className="text-muted">{additionalRequest}</p>
+                    <p className="text-muted">{additionalRequestText}</p>
                   </div>
-                  <span className="badge p-2 my-1 border" style={getServiceBadgeStyle("Received")}>
-                    Received
+                  <span
+                    className="badge p-2 my-1 border"
+                    style={getBadgeStyle(additionalRequestStatus)}
+                  >
+                    {additionalRequestStatus}
                   </span>
                 </div>
               )}
