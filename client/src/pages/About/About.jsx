@@ -43,7 +43,7 @@ function About() {
       {/* About Section 1 */}
       <section style={{ margin: "80px auto" }} className="container">
         <div className="row align-items-center">
-          <div className="col-md-6" data-aos="fade-out">
+          <div className="col-md-6" >
             <h2 className="fw-bold text-primary mb-4">
               We are highly skilled mechanics for your car repair
             </h2>
@@ -60,7 +60,7 @@ function About() {
           </div>
           <div
             className="col-md-6 text-center"
-            data-aos="fade-out"
+            
             data-aos-delay="200"
           >
             <img

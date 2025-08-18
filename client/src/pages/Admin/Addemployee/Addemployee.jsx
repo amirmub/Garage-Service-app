@@ -73,7 +73,7 @@ function AddEmployee() {
           <Sidebar />
         </div>
 
-        <div className="col-md-9 col-lg-10 p-5">
+        <div className="col-md-9 col-lg-10 px-5 py-4">
           <div className="section-title">Add a New Employee</div>
           <form onSubmit={handleSubmit} className="w-75">
             <div className="mb-3">

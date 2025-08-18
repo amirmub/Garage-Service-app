@@ -62,7 +62,7 @@ function MyCarousel() {
                   data-aos="fade-right"
                 >
                   <h1 className="display-3 text-white mb-4 pb-3">
-                    Qualified Car Wash Service Center
+                   Authorized Auto Repair Garage
                   </h1>
                 </Col>
                 <Col

@@ -1,13 +1,27 @@
 import { Link } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
+import { useState } from "react";
 
 function Header() {
   const { isLogin } = useAuth();
+  const [menuOpen, setMenuOpen] = useState(false);
 
   function logOut() {
     localStorage.removeItem("Token");
     window.location.reload();
   }
+
+  // Inline styles for hamburger lines
+  const lineStyle = {
+    display: "block",
+    height: "3px",
+    width: "25px",
+    background: "#000",
+    borderRadius: "2px",
+    position: "absolute",
+    left: 0,
+    transition: "all 0.3s ease-in-out",
+  };
 
   return (
     <>
@@ -29,16 +43,40 @@ function Header() {
           </h2>
         </Link>
 
+        {/* Hamburger Toggle */}
         <button
           type="button"
           className="navbar-toggler me-4"
-          data-bs-toggle="collapse"
-          data-bs-target="#navbarCollapse"
+          onClick={() => setMenuOpen(!menuOpen)}
+          style={{ position: "relative", width: "25px", height: "18px" }}
         >
-          <span className="navbar-toggler-icon"></span>
+          <span
+            style={{
+              ...lineStyle,
+              top: menuOpen ? "7.5px" : "0px",
+              transform: menuOpen ? "rotate(45deg)" : "rotate(0deg)",
+            }}
+          />
+          <span
+            style={{
+              ...lineStyle,
+              top: "7.5px",
+              opacity: menuOpen ? 0 : 1,
+            }}
+          />
+          <span
+            style={{
+              ...lineStyle,
+              top: menuOpen ? "7.5px" : "15px",
+              transform: menuOpen ? "rotate(-45deg)" : "rotate(0deg)",
+            }}
+          />
         </button>
 
-        <div className="collapse navbar-collapse" id="navbarCollapse">
+        <div
+          className={`collapse navbar-collapse ${menuOpen ? "show" : ""}`}
+          id="navbarCollapse"
+        >
           <div className="navbar-nav ms-auto p-4 p-lg-0">
             <Link to="/" className="nav-item nav-link active">
               Home
@@ -52,13 +90,13 @@ function Header() {
             <Link to="/contact" className="nav-item nav-link">
               Contact
             </Link>
-              {isLogin && (
+            {isLogin && (
               <Link to="/dashboard" className="nav-item nav-link">
                 Admin
               </Link>
             )}
-
           </div>
+
           {isLogin ? (
             <div onClick={logOut}>
               <Link
@@ -96,8 +134,6 @@ function Header() {
           )}
         </div>
       </nav>
-
-      {/* Spacer div to prevent content hiding behind sticky navbar */}
     </>
   );
 }
