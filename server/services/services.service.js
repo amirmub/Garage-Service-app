@@ -67,15 +67,41 @@ async function editService(serviceData, serviceId) {
 // Function to delete a service
 async function deleteService(serviceId) {
   try {
-    const result = await db.query("DELETE FROM common_services WHERE service_id = ?", [serviceId]);
+    //  Check if the service is used in any orders
+    const rows = await db.query(
+      "SELECT COUNT(*) AS count FROM order_services WHERE service_id = ?",
+      [serviceId]
+    );
 
-    return { message: "Service Deleted successfully", status: 200 };
-    
+    if (rows[0].count > 0) {
+      // Service is in use, cannot delete
+      return {
+        error: "Cannot delete service. It is currently used in existing orders.",
+        status: 400,
+      };
+    }
+
+    // Safe to delete
+    await db.query("DELETE FROM common_services WHERE service_id = ?", [serviceId]);
+
+    return {
+      message: "Service deleted successfully",
+      status: 200,
+    };
   } catch (error) {
     console.error("Delete Service Error:", error.message);
+
+    // Handle foreign key error specifically (extra safety)
+    if (error.code === "ER_ROW_IS_REFERENCED_2") {
+      return {
+        error: "Cannot delete service. It is referenced in orders.",
+        status: 400,
+      };
+    }
+
     return { error: "Internal Server Error", status: 500 };
   }
+}
 
- }
 
 module.exports = { addService, getAllServices, editService, deleteService };

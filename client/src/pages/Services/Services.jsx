@@ -67,20 +67,20 @@ function Services() {
     }
   }
 
-  // Delete service
-  async function handleDelete(serviceId) {
-    if (!window.confirm("Are you sure you want to delete this service?")) return;
+  // // Delete service
+  // async function handleDelete(serviceId) {
+  //   if (!window.confirm("Are you sure you want to delete this service?")) return;
 
-    try {
-      await axios.delete(`/delete-service/${serviceId}`, {
-        headers: { Authorization: `Bearer ${loggedUser}` },
-      });
-      setServices((prev) => prev.filter((service) => service.service_id !== serviceId));
-      toast.success("Service Deleted successfully!",{duration: 2000});
-    } catch (error) {
-      console.log(error.response);
-    }
-  }
+  //   try {
+  //     await axios.delete(`/delete-service/${serviceId}`, {
+  //       headers: { Authorization: `Bearer ${loggedUser}` },
+  //     });
+  //     setServices((prev) => prev.filter((service) => service.service_id !== serviceId));
+  //     toast.success("Service Deleted successfully!",{duration: 2000});
+  //   } catch (error) {
+  //     console.log(error.response);
+  //   }
+  // }
 
   // Edit service handlers
   const handleEditClick = (service) => {
@@ -210,12 +210,12 @@ function Services() {
                               }}
                             />
                           </Link>
-                          <Link to="#" onClick={() => handleDelete(service.service_id)}>
+                          {/* <Link to="#" onClick={() => handleDelete(service.service_id)}>
                             <i
                               className="fas fa-trash"
                               style={{ color: "red", fontSize: "1.1rem" }}
                             />
-                          </Link>
+                          </Link> */}
                         </>
                       )}
                     </div>
