@@ -73,7 +73,7 @@ function AllOrders() {
                 ?.service_name || "N/A"
           );
 
-         // Determine status based on all services AND additional request
+          // Determine status based on all services AND additional request
           const allReady = (o.services || []).every(
             (s) => s.service_completed === "Ready for Pickup"
           );
@@ -82,7 +82,6 @@ function AllOrders() {
             "Ready for Pickup";
 
           const status = allReady && additionalReady ? "Closed" : "Open";
-
 
           return {
             ...o,
@@ -163,15 +162,14 @@ function AllOrders() {
                     services.find((as) => as.service_id === s.service_id)
                       ?.service_name || "N/A"
                 ),
-               status:
-  editOrder.services.every(
-    (s) => s.service_completed === "Ready for Pickup"
-  ) &&
-  (editOrder.services[0]?.additional_requests_completed ===
-    "Ready for Pickup")
-    ? "Closed"
-    : "Open",
-
+                status:
+                  editOrder.services.every(
+                    (s) => s.service_completed === "Ready for Pickup"
+                  ) &&
+                  editOrder.services[0]?.additional_requests_completed ===
+                    "Ready for Pickup"
+                    ? "Closed"
+                    : "Open",
               }
             : o
         )
@@ -320,13 +318,13 @@ function AllOrders() {
                                         {order.customer.customer_first_name}{" "}
                                         {order.customer.customer_last_name}
                                       </strong>
-                                      <br />
-                                      <p className="text-muted my-3">
-                                        <small className="fw-bold">
+                                     
+                                      <p className="text-muted " style={{ marginTop: "15px"}}>
+                                        <p className="fw-bold" style={{ fontSize: "14px"}}>
                                           {order.order_hash}
-                                        </small>{" "}
-                                        <br />
-                                        <small style={{ fontSize: "10px" }}>
+                                        </p>
+                                        
+                                        <small style={{ fontSize: "12px"}}>
                                           📞
                                         </small>{" "}
                                         {order.customer.customer_phone_number}
