@@ -7,7 +7,7 @@ import "aos/dist/aos.css"; // AOS styles
 // Pages & Components
 import Home from "./pages/Home/Home";
 import Login from "./pages/Login/Login";
-import AddEmployee from "./pages/Admin/AddEmployee/AddEmployee";
+import AddEmployee from "./pages/Admin/Addemployee/AddEmployee";
 import Header from "./components/Header/Header";
 import Footer from "./components/Footer/Footer";
 import TopHeader from "./components/TopHeader/TopHeader";
