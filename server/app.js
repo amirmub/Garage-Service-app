@@ -16,7 +16,7 @@ const routes = require("./routes/index")
 app.use(routes);
 
 app.get("/",(req,res) => {
-  res.send("Welcome to Garage Service App");
+  res.status(200).json({msg:"Welcome to Garage Service App"});
 });
 
 const PORT = process.env.PORT || 5000;
