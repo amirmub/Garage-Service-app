@@ -13,7 +13,11 @@ app.use(sanitize.middleware)
 
 // all routes
 const routes = require("./routes/index")
-app.use(routes)
+app.use(routes);
+
+app.get("/",(req,res) => {
+  res.send("Welcome to Garage Service App");
+});
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT,() => {
