@@ -1,4 +1,4 @@
-// const mysql = require('mysql2/promise');
+const mysql = require('mysql2');
 
 // // Create a connection to the database
 // const dbConnection = mysql.createPool({
@@ -10,42 +10,20 @@
 // });
 
 
-// async function query(sql,params) {
-//     const [row,fields] = await dbConnection.execute(sql,params)
-//     return row
-// }
-    
-// module.exports = { query }
+const dbConnection = mysql.createConnection(process.env.DATABASE_URL);
 
-
-const mysql = require("mysql2");
-const url = require("url");
-
-// Parse DATABASE_URL
-const dbUrl = process.env.DATABASE_URL;
-const params = url.parse(dbUrl);
-const [user, password] = params.auth.split(":");
-
-const dbConnection = mysql.createConnection({
-  host: params.hostname,
-  user: user,
-  password: password,
-  database: params.pathname.replace("/", ""),
-  port: params.port,
-});
-
-dbConnection.connect((err) => {
+dbConnection.connect(err => {
   if (err) {
     console.error("DB connection error:", err);
   } else {
-    console.log("Connected to Railway MySQL!");
+    console.log("Connected to Railway MySQL via DATABASE_URL!");
   }
 });
 
-// Async query helper
-async function query(sql, params) {
-  const [rows, fields] = await dbConnection.promise().execute(sql, params);
-  return rows;
-}
 
-module.exports = { query };
+async function query(sql,params) {
+    const [row,fields] = await dbConnection.execute(sql,params)
+    return row
+}
+    
+module.exports = { query }
