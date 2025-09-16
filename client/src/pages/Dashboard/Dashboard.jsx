@@ -96,7 +96,7 @@ function Dashboard() {
         </div>
 
         {/* Main Dashboard */}
-        <div className="col-md-9 col-lg-10 bg-light p-4">
+        <div className="col-md-9 col-lg-10 bg-light px-5 py-4">
           <small className="mb-4 mt-2 section-title fw-bold pb-1">Dashboard</small>
           <br />
           <br />
