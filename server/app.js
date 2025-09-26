@@ -13,15 +13,11 @@ app.use(sanitize.middleware)
 
 // all routes
 const routes = require("./routes/index")
-app.use(routes);
-
-app.get("/",(req,res) => {
-  res.status(200).json({msg:"Welcome to Garage Service App"});
-});
+app.use(routes)
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT,() => {
-  console.log(`Server is running on port: ${PORT}`);
+  console.log(`Server is running on port http://localhost:${PORT}`);
 });
 
 
